@@ -6,6 +6,7 @@
 #include "EngineDevice.h"
 #include "SwapChain.h"
 #include "GameObject.h"
+#include "Camera.h"
 
 class SimpleRenderSystem
 {
@@ -18,7 +19,8 @@ public:
     SimpleRenderSystem( SimpleRenderSystem&& ) = delete;
 
     void RenderGameObjects( VkCommandBuffer commandBuffer,
-    std::vector<GameObject>& gameObjects);
+    std::vector<GameObject>& gameObjects,
+        const Camera& camera);
 
 private:
     void CreatePipelineLayout();

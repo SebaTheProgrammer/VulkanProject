@@ -9,6 +9,7 @@
 #include "GameObject.h"
 #include <glm/gtc/constants.hpp>
 #include "Renderer.h"
+#include "Camera.h"
 
 struct SimplePushConstantData
 {
@@ -71,19 +72,17 @@ void SimpleRenderSystem::CreatePipeline( VkRenderPass renderPass )
 
 void SimpleRenderSystem::RenderGameObjects( 
 	VkCommandBuffer commandBuffer,
-	std::vector<GameObject>& gameObjects )
+	std::vector<GameObject>& gameObjects,
+	const Camera& camera )
 {
 	m_Pipeline->Bind( commandBuffer );
 
+	auto projectionView = camera.GetViewProjectionMatrix();
+
 	for ( auto& obj : gameObjects )
 	{
-		obj.transform.rotation.y =
-			obj.transform.rotation.y + 0.001f * glm::two_pi<float>();
-		obj.transform.rotation.x =
-			obj.transform.rotation.x + 0.001f * glm::two_pi<float>();
-
 		SimplePushConstantData push{};
-		push.transform = obj.transform.mat4();
+		push.transform = projectionView * obj.transform.mat4();
 		push.color = obj.color;
 
 		vkCmdPushConstants( commandBuffer, m_PipelineLayout,

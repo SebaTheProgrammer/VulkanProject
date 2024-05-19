@@ -32,6 +32,7 @@ public:
     }
 
     VkRenderPass GetSwapChainRenderPass() const { return m_SwapChain->getRenderPass(); }
+    float GetAspectRatio() const { return m_SwapChain->extentAspectRatio(); }
 
     VkCommandBuffer BeginFrame();
     void EndFrame();

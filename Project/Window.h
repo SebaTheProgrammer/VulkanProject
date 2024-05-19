@@ -27,6 +27,8 @@ public:
 		{ static_cast<uint32_t>( m_Width ), 
 		static_cast<uint32_t>( m_Height ) }; }
 
+	GLFWwindow* GetGLFWwindow()const { return m_Window; }
+
 private:
 	void InitWindow();
 	static void FramebufferResizeCallback( GLFWwindow* window, int width, int height );
