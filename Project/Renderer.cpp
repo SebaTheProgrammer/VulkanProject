@@ -180,12 +180,12 @@ void Renderer::BeginSwapChainRenderPass( VkCommandBuffer commandBuffer )
 
 void Renderer::EndSwapChainRenderPass( VkCommandBuffer commandBuffer )
 {
-	assert( m_FrameStarted &&
-		"Cannot end render pass when frame not ended" );
-	assert( commandBuffer == GetCurrentCommandBuffer() &&
-		"Cannot end render pass for command buffer that is from a different frane" );
-
-	vkCmdEndRenderPass( m_CommandBuffers[ m_CurrentImageIndex ] );
+	assert( m_FrameStarted && 
+		"Can't call endSwapChainRenderPass if frame is not in progress" );
+	assert(
+		commandBuffer == GetCurrentCommandBuffer() &&
+		"Can't end render pass on command buffer from a different frame" );
+	vkCmdEndRenderPass( commandBuffer );
 }
 
 
