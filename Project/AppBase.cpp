@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <array>
 #include "Window.h"
+#include <iostream>
 
 struct SimplePushConstantData
 {
@@ -150,6 +151,9 @@ void AppBase::FreeCommandBuffers()
 
 void AppBase::RecordCommandBuffer( int imageIndex )
 {
+	static int frame{ 0 };
+	frame = ( frame + 1 ) % 1000;
+
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -167,7 +171,7 @@ void AppBase::RecordCommandBuffer( int imageIndex )
 	renderPassInfo.renderArea.extent = m_SwapChain->getSwapChainExtent();
 
 	std::array<VkClearValue, 2> clearValues{};
-	clearValues[ 0 ].color = { 0.1f, 0.1f, 0.1f, 1.0f };
+	clearValues[ 0 ].color = { 0.01f, 0.01f, 0.01f, 1.0f };
 	clearValues[ 1 ].depthStencil = { 1.0f, 0 };
 	renderPassInfo.clearValueCount = static_cast< uint32_t >( clearValues.size() );
 	renderPassInfo.pClearValues = clearValues.data();
@@ -195,7 +199,7 @@ void AppBase::RecordCommandBuffer( int imageIndex )
 	for ( int index{ 0 }; index < 4; index++ )
 	{
 		SimplePushConstantData push{};
-		push.offset = { 0.0f, -0.4f + index * 0.25f };
+		push.offset = { -0.5f+frame*0.002f, -0.4f + index * 0.25f };
 		push.color = { 0.0f, 0.0f, 0.2f + 0.2f * index };
 
 		vkCmdPushConstants( m_CommandBuffers[ imageIndex ],
@@ -205,8 +209,6 @@ void AppBase::RecordCommandBuffer( int imageIndex )
 
 		m_Model->Draw( m_CommandBuffers[ imageIndex ] );
 	}
-
-	
 
 	vkCmdEndRenderPass( m_CommandBuffers[ imageIndex ] );
 
