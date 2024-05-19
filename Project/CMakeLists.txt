@@ -33,7 +33,7 @@ set(SOURCES
     "Model.cpp")
 
 # Create the executable
-add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES}   "vulkanbase/helperStructs.h"     "Camera.h"  "SDL2-2.28.3/SDL_keyboard.h" "Pipeline.h" "Model.h")
+add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES}   "vulkanbase/helperStructs.h"     "Camera.h"  "SDL2-2.28.3/SDL_keyboard.h" "Pipeline.h" "Model.h" "GameObject.h")
 add_dependencies(${PROJECT_NAME} Shaders)
 # Link libraries
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -6,6 +6,7 @@
 #include "EngineDevice.h"
 #include "SwapChain.h"
 #include "Model.h"
+#include "GameObject.h"
 
 class AppBase
 {
@@ -21,7 +22,7 @@ public:
     void Run();
 
 private:
-    void LoadModels();
+    void LoadGameObjects();
     void CreatePipelineLayout();
     void CreatePipeline();
     void CreateCommandBuffers();
@@ -29,6 +30,7 @@ private:
     void DrawFrame();
     void RecreateSwapChain();
     void RecordCommandBuffer( int imageIndex );
+    void RenderGameObjects( VkCommandBuffer commandBuffer, int imageIndex );
 
     const int WIDTH;
     const int HEIGHT;
@@ -39,5 +41,5 @@ private:
    std::unique_ptr<Pipeline> m_Pipeline;
    VkPipelineLayout m_PipelineLayout;
    std::vector<VkCommandBuffer> m_CommandBuffers;
-   std::unique_ptr<Model> m_Model;
+   std::vector<GameObject> m_GameObjects;
 };

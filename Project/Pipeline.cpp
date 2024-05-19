@@ -182,22 +182,6 @@ void Pipeline::createGraphicsPipeline(
 		static_cast< uint32_t >( bindingDescriptions.size() );
 	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 	vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-	
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = 28;
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0;
-	pipelineLayoutInfo.pSetLayouts = nullptr;
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-	VkPipelineLayout pipelineLayout;
-	if ( vkCreatePipelineLayout( device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS ) {
-		throw std::runtime_error( "failed to create pipeline layout!" );
-	}
 
 	VkGraphicsPipelineCreateInfo createPipelineInfo{};
 	createPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -211,7 +195,7 @@ void Pipeline::createGraphicsPipeline(
 	createPipelineInfo.pColorBlendState = &pipelineInfo.colorBlendInfo;
 	createPipelineInfo.pDepthStencilState = &pipelineInfo.depthStencilInfo;
 	createPipelineInfo.pDynamicState = &pipelineInfo.dynamicStateInfo;
-	createPipelineInfo.layout = pipelineLayout;
+	createPipelineInfo.layout = pipelineInfo.pipelineLayout;
 
 	//createPipelineInfo.layout = pipelineInfo.pipelineLayout;
 	createPipelineInfo.renderPass = pipelineInfo.renderPass;
