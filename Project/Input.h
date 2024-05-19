@@ -37,8 +37,8 @@ public:
             double xpos, ypos;
             glfwGetCursorPos( window, &xpos, &ypos );
 
-            float xoffset = ( xpos - lastX ) * mouseSensitivity;
-            float yoffset = ( lastY - ypos ) * mouseSensitivity; // Reversed since y-coordinates range from bottom to top
+            float xoffset = ( xpos - lastX ) * m_LookSpeed;
+            float yoffset = ( lastY - ypos ) * m_LookSpeed; // Reversed since y-coordinates range from bottom to top
 
             lastX = xpos;
             lastY = ypos;
@@ -52,15 +52,12 @@ public:
             if ( pitch < -89.0f )
                 pitch = -89.0f;
 
-            // Debugging: Print the yaw and pitch values
-            std::cout << "Yaw: " << yaw << ", Pitch: " << pitch << std::endl;
-
             gameObject.transform.rotation.x = glm::radians( pitch );
             gameObject.transform.rotation.y = glm::radians( yaw ); 
         }
         else
         {
-            firstMouse = true; // Reset the initial mouse capture when the button is released
+            firstMouse = true;
         }
 
         // Movement
@@ -88,11 +85,11 @@ public:
         }
         if ( glfwGetKey( window, m_keyMappings.moveUp ) == GLFW_PRESS )
         {
-            moveDir += up;
+            moveDir -= up;
         }
         if ( glfwGetKey( window, m_keyMappings.moveDown ) == GLFW_PRESS )
         {
-            moveDir -= up;
+            moveDir += up;
         }
 
         if ( glm::dot( moveDir, moveDir ) > std::numeric_limits<float>::epsilon() )
@@ -109,12 +106,11 @@ public:
 
     KeyMappings m_keyMappings;
     float m_MoveSpeed{ 3.0f };
-    float m_LookSpeed{ 10.0f };
+    float m_LookSpeed{ 0.3f };
 
 private:
     double lastX, lastY;
     bool firstMouse = true;
     float yaw = 0.0f;
     float pitch = 0.0f;
-    float mouseSensitivity = 0.1f;
 };

@@ -21,7 +21,14 @@ public:
 			GetAttributeDescriptions();
 	};
 
-	Model( EngineDevice& device, const std::vector<Vertex>& vertices );
+	struct VerticesIndices
+	{
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
+	};
+
+	Model( EngineDevice& device,
+		const Model::VerticesIndices& verticesindices );
 	~Model();
 
 	Model( const Model& ) = delete;
@@ -31,11 +38,17 @@ public:
 	void Draw( VkCommandBuffer commandBuffer );
 
 private:
-	void CreateVertexBuffer(const std::vector<Vertex> &vertices);
-
+	void CreateVertexBuffer(const std::vector<Vertex>& vertices);
+	void CreateIndexBuffer( const std::vector<uint32_t>& indices );
+	
 	EngineDevice& m_Device;
 	VkBuffer m_VertexBuffer;
 	VkDeviceMemory m_VertexBufferMemory;
 	uint32_t m_VertexCount;
+
+	bool m_HasIndexBuffer = false;
+	VkBuffer m_IndexBuffer;
+	VkDeviceMemory m_IndexBufferMemory;
+	uint32_t m_IndexCount;
 
 };
