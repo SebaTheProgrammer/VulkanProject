@@ -26,13 +26,46 @@ public:
         int fall = GLFW_KEY_F;
     };
 
-    MovementController( std::vector<GameObject>& gameObjects ): m_GameObjects( gameObjects )
-	{
-	}
+    MovementController( std::vector<GameObject>& gameObjects )
+    {
+        for ( int index = 0; index < gameObjects.size(); ++index )
+        {
+            if ( gameObjects[ index ].m_Model != nullptr )
+            {
+                std::vector<glm::vec3> triangles = gameObjects[ index ].m_Model->GetModelData().GetTriangles();
+                glm::vec3 translation = gameObjects[ index ].m_Transform.translation;
+                glm::vec3 rotation = gameObjects[ index ].m_Transform.rotation;
+                glm::vec3 scale = gameObjects[ index ].m_Transform.scale;
+
+                TransformTriangles( triangles, translation, rotation, scale );
+            }
+        }
+        m_GameObjects=gameObjects;
+    }
+
+    void TransformTriangles( std::vector<glm::vec3>& triangles, const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale )
+    {
+        glm::mat4 translationMatrix = glm::translate( glm::mat4( 1.0f ), translation );
+
+        glm::mat4 rotationX = glm::rotate( glm::mat4( 1.0f ), rotation.x, glm::vec3( 1.0f, 0.0f, 0.0f ) );
+        glm::mat4 rotationY = glm::rotate( glm::mat4( 1.0f ), rotation.y, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+        glm::mat4 rotationZ = glm::rotate( glm::mat4( 1.0f ), rotation.z, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+
+        glm::mat4 rotationMatrix = rotationZ * rotationY * rotationX;
+
+        glm::mat4 scaleMatrix = glm::scale( glm::mat4( 1.0f ), scale );
+
+        glm::mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+        // Apply the transformation matrix to each vertex
+        for ( glm::vec3& vertex : triangles )
+        {
+            vertex = glm::vec3( transformMatrix * glm::vec4( vertex, 1.0f ) );
+        }
+    }
 
     void MoveInPlaneXZ( GLFWwindow* window, float dt, GameObject& gameObject )
     {
-        // Check if right mouse button is pressed
         if ( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_RIGHT ) == GLFW_PRESS )
         {
             // Capture mouse movement
@@ -46,7 +79,7 @@ public:
             glfwGetCursorPos( window, &xpos, &ypos );
 
             float xoffset = ( xpos - m_LastX ) * m_LookSpeed;
-            float yoffset = ( m_LastY - ypos ) * m_LookSpeed; // Reversed since y-coordinates range from bottom to top
+            float yoffset = ( m_LastY - ypos ) * m_LookSpeed;
 
             m_LastX = xpos;
             m_LastY = ypos;
@@ -72,7 +105,7 @@ public:
         float yaw = gameObject.m_Transform.rotation.y;
         const glm::vec3 forward{ sin( yaw ), 0.f, cos( yaw ) };
         const glm::vec3 right{ forward.z, 0.f, -forward.x };
-        const glm::vec3 up{ 0.f, 1.f, 0.f }; // Y-axis positive for upward movement
+        const glm::vec3 up{ 0.f, 1.f, 0.f };
 
         glm::vec3 moveDir{ 0.f };
         if ( glfwGetKey( window, m_keyMappings.moveForward ) == GLFW_PRESS )
@@ -93,10 +126,12 @@ public:
         }
         if ( glfwGetKey( window, m_keyMappings.moveUp ) == GLFW_PRESS )
         {
+            m_VelocityY=0.0f;
             moveDir -= up;
         }
         if ( glfwGetKey( window, m_keyMappings.moveDown ) == GLFW_PRESS )
         {
+            m_VelocityY=0.0f;
             moveDir += up;
         }
         if ( glfwGetKey( window, m_keyMappings.jump ) == GLFW_PRESS )
@@ -135,13 +170,13 @@ public:
 
     void Update( float deltaTime, GameObject& camera )
     {
-        if ( camera.m_Transform.translation.y < 0.0f ) 
+        if ( camera.m_Transform.translation.y <= 0.0f ) 
         {
+            m_VelocityY += m_Gravity * deltaTime;
+            m_CurrentPositionY = camera.m_Transform.translation.y - m_VelocityY * deltaTime;
+
             if ( m_IsJumping )
             {
-                m_VelocityY += m_Gravity * deltaTime;
-                m_CurrentPositionY = camera.m_Transform.translation.y - m_VelocityY * deltaTime;
-
                 if ( m_CurrentPositionY >= m_StartJumpPosition )
                 {
                     m_CurrentPositionY = m_StartJumpPosition;
@@ -155,7 +190,7 @@ public:
 
             // Perform raycast to check for intersection with mesh
             glm::vec3 rayOrigin = camera.m_Transform.translation;
-            glm::vec3 rayDirection = glm::vec3( 0.0f, -1.0f, 0.0f ); // Downward direction
+            glm::vec3 rayDirection = glm::vec3( 0.0f, -1.0f, 0.0f );
 
             bool foundIntersection = false;
 
@@ -179,13 +214,19 @@ public:
 
                         if ( glm::intersectRayTriangle( rayOrigin, rayDirection, vertex0, vertex1, vertex2, intersectionPoint, m_RayCastDistance ) )
                         {
-                            // Adjust the start jump position based on the intersection point
-                            m_StartJumpPosition = intersectionPoint.y - 2; // Assuming 2 is the height of the player
+                            m_StartJumpPosition = intersectionPoint.y - m_PlayerHeight;
 
-                            // Update the lowest intersection point found so far
                             m_LowestIntersectionY = std::max( m_LowestIntersectionY, m_StartJumpPosition );
-
-                            foundIntersection = true;
+                           
+                            if ( m_RayCastDistance < m_MaxRayCastDistance )
+                            {
+                                foundIntersection = true;
+                                std::cout << intersectionPoint.y << std::endl;
+                            }
+                        }
+                        else 
+                        {
+                            m_IsJumping = true;
                         }
                     }
                 }
@@ -223,7 +264,11 @@ private:
 
     float m_StartJumpPosition{ 0 };
     float m_LowestIntersectionY{ std::numeric_limits<float>::lowest() };
-    float m_RayCastDistance{ 1000.f };
+    const float m_MaxRayCastDistance{ 100.f };
+    float m_RayCastDistance{ m_MaxRayCastDistance };
+
+    const float m_PlayerHeight{ 2.0f };
 
     std::vector<GameObject> m_GameObjects;
+
 };
