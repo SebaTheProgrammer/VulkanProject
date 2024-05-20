@@ -20,7 +20,12 @@ public:
         int lookRight = GLFW_KEY_RIGHT;
         int lookUp = GLFW_KEY_UP;
         int lookDown = GLFW_KEY_DOWN;
+        int jump = GLFW_KEY_SPACE; // Add a key for jump
     };
+
+    MovementController()
+    {
+    }
 
     void MoveInPlaneXZ( GLFWwindow* window, float dt, GameObject& gameObject )
     {
@@ -28,36 +33,36 @@ public:
         if ( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_RIGHT ) == GLFW_PRESS )
         {
             // Capture mouse movement
-            if ( firstMouse )
+            if ( m_FirstMouse )
             {
-                glfwGetCursorPos( window, &lastX, &lastY );
-                firstMouse = false;
+                glfwGetCursorPos( window, &m_LastX, &m_LastY );
+                m_FirstMouse = false;
             }
 
             double xpos, ypos;
             glfwGetCursorPos( window, &xpos, &ypos );
 
-            float xoffset = ( xpos - lastX ) * m_LookSpeed;
-            float yoffset = ( lastY - ypos ) * m_LookSpeed; // Reversed since y-coordinates range from bottom to top
+            float xoffset = ( xpos - m_LastX ) * m_LookSpeed;
+            float yoffset = ( m_LastY - ypos ) * m_LookSpeed; // Reversed since y-coordinates range from bottom to top
 
-            lastX = xpos;
-            lastY = ypos;
+            m_LastX = xpos;
+            m_LastY = ypos;
 
-            yaw += xoffset;
-            pitch += yoffset;
+            m_Yaw += xoffset;
+            m_Pitch += yoffset;
 
             // Constrain the pitch
-            if ( pitch > 89.0f )
-                pitch = 89.0f;
-            if ( pitch < -89.0f )
-                pitch = -89.0f;
+            if ( m_Pitch > 89.0f )
+                m_Pitch = 89.0f;
+            if ( m_Pitch < -89.0f )
+                m_Pitch = -89.0f;
 
-            gameObject.m_Transform.rotation.x = glm::radians( pitch );
-            gameObject.m_Transform.rotation.y = glm::radians( yaw ); 
+            gameObject.m_Transform.rotation.x = glm::radians( m_Pitch );
+            gameObject.m_Transform.rotation.y = glm::radians( m_Yaw );
         }
         else
         {
-            firstMouse = true;
+            m_FirstMouse = true;
         }
 
         // Movement
@@ -91,17 +96,52 @@ public:
         {
             moveDir += up;
         }
+        if ( glfwGetKey( window, m_keyMappings.jump ) == GLFW_PRESS )
+        {
+            Jump( gameObject );
+        }
 
         if ( glm::dot( moveDir, moveDir ) > std::numeric_limits<float>::epsilon() )
         {
             gameObject.m_Transform.translation += glm::normalize( moveDir ) * m_MoveSpeed * dt;
         }
+
+        // Update vertical position
+        Update( dt, gameObject );
     }
 
     void SetMouseInitialPosition( GLFWwindow* window )
     {
-        glfwGetCursorPos( window, &lastX, &lastY );
-        firstMouse = false;
+        glfwGetCursorPos( window, &m_LastX, &m_LastY );
+        m_FirstMouse = false;
+    }
+
+    void Jump( GameObject& gameObject )
+    {
+        if ( !m_IsJumping )
+        {
+            m_IsJumping = true;
+            m_VelocityY = m_JumpStrength;
+            m_StartJumpPosition = gameObject.m_Transform.translation.y;
+        }
+    }
+
+    void Update( float deltaTime, GameObject& gameObject )
+    {
+        if ( m_IsJumping )
+        {
+            m_VelocityY += m_Gravity * deltaTime;
+            m_CurrentPositionY = gameObject.m_Transform.translation.y - m_VelocityY * deltaTime;
+
+            if ( m_CurrentPositionY >= m_StartJumpPosition )
+            {
+                m_CurrentPositionY = m_StartJumpPosition;
+                m_IsJumping = false;
+                m_VelocityY = 0.0f;
+            }
+
+            gameObject.m_Transform.translation.y = m_CurrentPositionY;
+        }
     }
 
     KeyMappings m_keyMappings;
@@ -109,8 +149,17 @@ public:
     float m_LookSpeed{ 0.3f };
 
 private:
-    double lastX, lastY;
-    bool firstMouse = true;
-    float yaw = 0.0f;
-    float pitch = 0.0f;
+    double m_LastX, m_LastY;
+    bool m_FirstMouse = true;
+    float m_Yaw = 0.0f;
+    float m_Pitch = 0.0f;
+
+    // Jump mechanics
+    float m_CurrentPositionY;
+    float m_VelocityY;
+    const float m_Gravity{ -9.8f };
+    const float m_JumpStrength{ 4.0f };
+    bool m_IsJumping{ false };
+
+    float m_StartJumpPosition;
 };
