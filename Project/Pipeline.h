@@ -51,8 +51,8 @@ private:
 		const std::vector<char>& code, 
 		VkShaderModule* shaderModule);
 
-	EngineDevice& device;
-	VkPipeline graphicsPipeline;
-	VkShaderModule vertShaderModule;
-	VkShaderModule fragShaderModule;
+	EngineDevice& m_Device;
+	VkPipeline m_GraphicsPipeline;
+	VkShaderModule m_VertShaderModule;
+	VkShaderModule m_FragShaderModule;
 };

@@ -46,8 +46,8 @@ void AppBase::Run()
         movementController.MoveInPlaneXZ( m_Window.GetGLFWwindow(),
             frameTime, viewer );
         camera.SetViewYXZ( 
-            viewer.transform.translation,
-            viewer.transform.rotation);
+            viewer.m_Transform.translation,
+            viewer.m_Transform.rotation);
 
         float aspect = m_Renderer.GetAspectRatio();
         camera.SetPerspectiveProjection(
@@ -63,7 +63,7 @@ void AppBase::Run()
 		}
     }
 
-	vkDeviceWaitIdle( m_EngineDevice.device() );
+	vkDeviceWaitIdle( m_EngineDevice.Device() );
 }
 
 std::unique_ptr<Model> createCubeModel( EngineDevice& device, glm::vec3 offset ) {
@@ -125,9 +125,9 @@ void AppBase::LoadGameObjects()
 	std::shared_ptr<Model> model = 
         createCubeModel( m_EngineDevice, {0.f, 0.f, 0.f} );
     auto cube = GameObject::Create();
-    cube.model = model;
-    cube.transform.translation = { 0.f, 0.f, 2.5f };
-    cube.transform.scale = { 0.5f, 0.5f, 0.5f };
+    cube.m_Model = model;
+    cube.m_Transform.translation = { 0.f, 0.f, 2.5f };
+    cube.m_Transform.scale = { 0.5f, 0.5f, 0.5f };
 
     m_GameObjects.emplace_back( std::move( cube ) );
 }

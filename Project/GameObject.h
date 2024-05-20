@@ -59,9 +59,9 @@ public:
 
 	id_t GetId() const { return m_id; }
 
-	std::shared_ptr<Model> model{};
-	glm::vec3 color{ 1.0f, 1.0f, 1.0f };
-	TransformComponent transform{};
+	std::shared_ptr<Model> m_Model{};
+	glm::vec3 m_Color{ 1.0f, 1.0f, 1.0f };
+	TransformComponent m_Transform{};
 
 private:
 	GameObject( id_t id ) : m_id{ id } {};

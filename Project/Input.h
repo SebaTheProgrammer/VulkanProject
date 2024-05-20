@@ -52,8 +52,8 @@ public:
             if ( pitch < -89.0f )
                 pitch = -89.0f;
 
-            gameObject.transform.rotation.x = glm::radians( pitch );
-            gameObject.transform.rotation.y = glm::radians( yaw ); 
+            gameObject.m_Transform.rotation.x = glm::radians( pitch );
+            gameObject.m_Transform.rotation.y = glm::radians( yaw ); 
         }
         else
         {
@@ -61,7 +61,7 @@ public:
         }
 
         // Movement
-        float yaw = gameObject.transform.rotation.y;
+        float yaw = gameObject.m_Transform.rotation.y;
         const glm::vec3 forward{ sin( yaw ), 0.f, cos( yaw ) };
         const glm::vec3 right{ forward.z, 0.f, -forward.x };
         const glm::vec3 up{ 0.f, 1.f, 0.f }; // Y-axis positive for upward movement
@@ -94,7 +94,7 @@ public:
 
         if ( glm::dot( moveDir, moveDir ) > std::numeric_limits<float>::epsilon() )
         {
-            gameObject.transform.translation += glm::normalize( moveDir ) * m_MoveSpeed * dt;
+            gameObject.m_Transform.translation += glm::normalize( moveDir ) * m_MoveSpeed * dt;
         }
     }
 

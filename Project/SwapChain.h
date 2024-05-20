@@ -20,17 +20,17 @@ class SwapChain {
   SwapChain(const SwapChain&) = delete;
   SwapChain& operator=(const SwapChain&) = delete;
 
-  VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
-  VkRenderPass getRenderPass() { return renderPass; }
-  VkImageView getImageView(int index) { return swapChainImageViews[index]; }
-  size_t imageCount() { return swapChainImages.size(); }
-  VkFormat getSwapChainImageFormat() { return swapChainImageFormat; }
-  VkExtent2D getSwapChainExtent() { return swapChainExtent; }
-  uint32_t width() { return swapChainExtent.width; }
-  uint32_t height() { return swapChainExtent.height; }
+  VkFramebuffer getFrameBuffer(int index) { return m_SwapChainFramebuffers[index]; }
+  VkRenderPass getRenderPass() { return m_RenderPass; }
+  VkImageView getImageView(int index) { return m_SwapChainImageViews[index]; }
+  size_t imageCount() { return m_SwapChainImages.size(); }
+  VkFormat getSwapChainImageFormat() { return m_SwapChainImageFormat; }
+  VkExtent2D getSwapChainExtent() { return m_SwapChainExtent; }
+  uint32_t width() { return m_SwapChainExtent.width; }
+  uint32_t height() { return m_SwapChainExtent.height; }
 
   float extentAspectRatio() {
-    return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
+    return static_cast<float>(m_SwapChainExtent.width) / static_cast<float>(m_SwapChainExtent.height);
   }
   VkFormat findDepthFormat();
 
@@ -39,47 +39,48 @@ class SwapChain {
 
   bool CompareSwapFormats( const SwapChain& swapChain ) const 
   {
-	return swapChainImageFormat == swapChain.swapChainImageFormat &&
-		   swapChainDepthFormat == swapChain.swapChainDepthFormat;
+	return m_SwapChainImageFormat == swapChain.m_SwapChainImageFormat &&
+		   m_SwapChainDepthFormat == swapChain.m_SwapChainDepthFormat;
   }
  private:
-  void init();
-  void createSwapChain();
-  void createImageViews();
-  void createDepthResources();
-  void createRenderPass();
-  void createFramebuffers();
-  void createSyncObjects();
+  void Init();
+  void CreateSwapChain();
+  void CreateImageViews();
+  void CreateDepthResources();
+  void CreateRenderPass();
+  void CreateFramebuffers();
+  void CreateSyncObjects();
 
   // Helper functions
-  VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+  VkSurfaceFormatKHR ChooseSwapSurfaceFormat(
       const std::vector<VkSurfaceFormatKHR> &availableFormats);
-  VkPresentModeKHR chooseSwapPresentMode(
+  VkPresentModeKHR ChooseSwapPresentMode(
       const std::vector<VkPresentModeKHR> &availablePresentModes);
-  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+  VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-  VkFormat swapChainImageFormat;
-  VkFormat swapChainDepthFormat;
-  VkExtent2D swapChainExtent;
+  VkFormat m_SwapChainImageFormat;
+  VkFormat m_SwapChainDepthFormat;
+  VkExtent2D m_SwapChainExtent;
 
-  std::vector<VkFramebuffer> swapChainFramebuffers;
-  VkRenderPass renderPass;
+  std::vector<VkFramebuffer> m_SwapChainFramebuffers;
+  VkRenderPass m_RenderPass;
 
-  std::vector<VkImage> depthImages;
-  std::vector<VkDeviceMemory> depthImageMemorys;
-  std::vector<VkImageView> depthImageViews;
-  std::vector<VkImage> swapChainImages;
-  std::vector<VkImageView> swapChainImageViews;
+  std::vector<VkImage> m_DepthImages;
+  std::vector<VkDeviceMemory> m_DepthImageMemorys;
+  std::vector<VkImageView> m_DepthImageViews;
+  std::vector<VkImage> m_SwapChainImages;
+  std::vector<VkImageView> m_SwapChainImageViews;
 
-  EngineDevice &device;
-  VkExtent2D windowExtent;
+  EngineDevice &m_Device;
+  VkExtent2D m_WindowExtent;
 
-  VkSwapchainKHR swapChain;
-  std::shared_ptr<SwapChain> oldSwapChain;
+  VkSwapchainKHR m_SwapChain;
+  std::shared_ptr<SwapChain> m_OldSwapChain;
 
-  std::vector<VkSemaphore> imageAvailableSemaphores;
-  std::vector<VkSemaphore> renderFinishedSemaphores;
-  std::vector<VkFence> inFlightFences;
-  std::vector<VkFence> imagesInFlight;
-  size_t currentFrame = 0;
+  std::vector<VkSemaphore> m_ImageAvailableSemaphores;
+  std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+  std::vector<VkFence> m_InFlightFences;
+  std::vector<VkFence> m_ImagesInFlight;
+  size_t m_CurrentFrame = 0;
 };
+

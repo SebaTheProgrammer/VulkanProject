@@ -29,7 +29,7 @@ void Renderer::RecreateSwapChain()
 		glfwWaitEvents();
 	}
 
-	vkDeviceWaitIdle( m_EngineDevice.device() );
+	vkDeviceWaitIdle( m_EngineDevice.Device() );
 
 	if ( m_SwapChain == nullptr )
 	{
@@ -56,10 +56,10 @@ void Renderer::CreateCommandBuffers()
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = m_EngineDevice.getCommandPool();
+	allocInfo.commandPool = m_EngineDevice.GetCommandPool();
 	allocInfo.commandBufferCount = static_cast< uint32_t >( m_CommandBuffers.size() );
 
-	if ( vkAllocateCommandBuffers( m_EngineDevice.device(),
+	if ( vkAllocateCommandBuffers( m_EngineDevice.Device(),
 		&allocInfo, m_CommandBuffers.data() ) != VK_SUCCESS )
 	{
 		throw std::runtime_error( "Failed to allocate command buffers!" );
@@ -68,8 +68,8 @@ void Renderer::CreateCommandBuffers()
 
 void Renderer::FreeCommandBuffers()
 {
-	vkFreeCommandBuffers( m_EngineDevice.device(),
-		m_EngineDevice.getCommandPool(),
+	vkFreeCommandBuffers( m_EngineDevice.Device(),
+		m_EngineDevice.GetCommandPool(),
 		static_cast< uint32_t >( m_CommandBuffers.size() ),
 		m_CommandBuffers.data() );
 

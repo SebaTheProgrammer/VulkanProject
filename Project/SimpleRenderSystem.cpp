@@ -28,7 +28,7 @@ SimpleRenderSystem::SimpleRenderSystem( EngineDevice& device,
 
 SimpleRenderSystem::~SimpleRenderSystem()
 {
-	vkDestroyPipelineLayout( m_EngineDevice.device(),
+	vkDestroyPipelineLayout( m_EngineDevice.Device(),
 		m_PipelineLayout, nullptr );
 }
 
@@ -48,7 +48,7 @@ void SimpleRenderSystem::CreatePipelineLayout()
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
 	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-	if ( vkCreatePipelineLayout( m_EngineDevice.device(),
+	if ( vkCreatePipelineLayout( m_EngineDevice.Device(),
 		&pipelineLayoutInfo, nullptr, &m_PipelineLayout ) != VK_SUCCESS )
 	{
 		throw std::runtime_error( "Failed to create pipeline layout!" );
@@ -82,14 +82,14 @@ void SimpleRenderSystem::RenderGameObjects(
 	for ( auto& obj : gameObjects )
 	{
 		SimplePushConstantData push{};
-		push.transform = projectionView * obj.transform.mat4();
-		push.color = obj.color;
+		push.transform = projectionView * obj.m_Transform.mat4();
+		push.color = obj.m_Color;
 
 		vkCmdPushConstants( commandBuffer, m_PipelineLayout,
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0, sizeof( SimplePushConstantData ), &push );
 
-		obj.model->Bind( commandBuffer );
-		obj.model->Draw( commandBuffer );
+		obj.m_Model->Bind( commandBuffer );
+		obj.m_Model->Draw( commandBuffer );
 	}
 }
