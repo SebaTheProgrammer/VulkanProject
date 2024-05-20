@@ -102,8 +102,10 @@ public:
 		SetViewDirection( pos, target - pos, up );
 	}
 
-	const glm::mat4& GetViewProjectionMatrix() const
+	const glm::mat4& GetViewProjectionMatrix()
 	{
+        //TODO: remove this hack
+        //m_ViewMatrix = glm::rotate( m_ViewMatrix, glm::radians( 180.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) );
 		return m_ProjectionMatrix * m_ViewMatrix;
 	}
 

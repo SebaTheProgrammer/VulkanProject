@@ -20,7 +20,7 @@ public:
 
     void RenderGameObjects( VkCommandBuffer commandBuffer,
     std::vector<GameObject>& gameObjects,
-        const Camera& camera);
+        Camera& camera);
 
 private:
     void CreatePipelineLayout();

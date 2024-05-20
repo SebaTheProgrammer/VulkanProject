@@ -1,12 +1,34 @@
 #include "Model.h"
 #include <cassert>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+#include <iostream>
+#include "Utils.h"
+#define GLM_ENABLE_EXPERIMENTAL //is it still so experimental?
+#include <glm/gtx/hash.hpp>
+#include <unordered_map>
+#include "stb_image.h"
+
+namespace std 
+{
+	template<> struct hash<Model::Vertex>
+	{
+		size_t operator()( Model::Vertex const& vertex ) const
+		{
+			size_t seed = 0;
+			hashCombine( seed, vertex.position, vertex.color, vertex.normal, vertex.uv );
+			return seed;
+		}
+	};
+}
 
 Model::Model( EngineDevice& device,
-	const Model::VerticesIndices& verticesindices )
+	const Model::ModelData& modelData )
 	: m_Device( device )
 {
-	CreateVertexBuffer( verticesindices.vertices );
-	CreateIndexBuffer( verticesindices.indices );
+	m_ModelData = modelData;
+	CreateVertexBuffer( m_ModelData.vertices );
+	CreateIndexBuffer( m_ModelData.indices );
 }
 
 Model::~Model()
@@ -34,6 +56,13 @@ void Model::Bind( VkCommandBuffer commandBuffer )
 	}
 }
 
+std::unique_ptr<Model> Model::CreateModelFromFile( EngineDevice& device, const std::string& filename )
+{
+	ModelData modelData;
+	modelData.LoadModel( filename );
+	return std::make_unique<Model>( device, modelData );
+}
+
 void Model::Draw( VkCommandBuffer commandBuffer )
 {
 	if ( m_HasIndexBuffer )
@@ -45,6 +74,11 @@ void Model::Draw( VkCommandBuffer commandBuffer )
 	{
 		vkCmdDraw( commandBuffer, m_VertexCount, 1, 0, 0 );
 	}
+}
+
+Model::ModelData Model::GetModelData() const
+{
+	return m_ModelData;
 }
 
 void Model::CreateVertexBuffer( const std::vector<Vertex>& vertices )
@@ -134,15 +168,140 @@ std::vector<VkVertexInputAttributeDescription>
 Model::Vertex::GetAttributeDescriptions()
 {
 	std::vector<VkVertexInputAttributeDescription>
-		attributeDescriptions( 2 );
-	attributeDescriptions[ 0 ].binding = 0;
-	attributeDescriptions[ 0 ].location = 0;
-	attributeDescriptions[ 0 ].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attributeDescriptions[ 0 ].offset = offsetof( Vertex, position );
+		attributeDescriptions;
 
-	attributeDescriptions[ 1 ].binding = 0;
-	attributeDescriptions[ 1 ].location = 1;
-	attributeDescriptions[ 1 ].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attributeDescriptions[ 1 ].offset = offsetof( Vertex, color );
+	attributeDescriptions.push_back( 
+		{ 0,0,VK_FORMAT_R32G32B32_SFLOAT,
+		offsetof( Vertex, position )} );
+	attributeDescriptions.push_back(
+		{ 1,0,VK_FORMAT_R32G32B32_SFLOAT,
+		offsetof( Vertex, color ) } );
+	attributeDescriptions.push_back(
+		{ 2,0,VK_FORMAT_R32G32B32_SFLOAT,
+		offsetof( Vertex, normal ) } );
+	attributeDescriptions.push_back(
+		{ 3,0,VK_FORMAT_R32G32_SFLOAT,
+		offsetof( Vertex, uv ) } );
+
 	return attributeDescriptions;
+}
+
+void Model::ModelData::LoadModel( const std::string& filename )
+{
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string warn, err;
+
+	if ( !tinyobj::LoadObj( &attrib, &shapes, &materials, &warn, &err, filename.c_str() ) )
+	{
+		std::cout<< warn + err << std::endl;
+		throw std::runtime_error( warn + err );
+	}
+
+	vertices.clear();
+	indices.clear();
+
+	std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+	for ( const auto& shape : shapes )
+	{
+		for ( const auto& index : shape.mesh.indices )
+		{
+			Vertex vertex{};
+
+			if ( index.vertex_index >= 0 )
+			{
+				vertex.position = 
+				{
+					attrib.vertices[ 3 * index.vertex_index + 0 ],
+					attrib.vertices[ 3 * index.vertex_index + 1 ],
+					attrib.vertices[ 3 * index.vertex_index + 2 ]
+				};
+
+				vertex.color = 
+				{ 
+					attrib.colors[ 3 * index.vertex_index + 0 ],
+					attrib.colors[ 3 * index.vertex_index + 1 ],
+					attrib.colors[ 3 * index.vertex_index + 2 ]
+				};
+			}
+
+			vertex.position.y *= -1.0;
+
+			if ( index.normal_index >= 0 )
+			{
+				vertex.normal =
+				{
+					attrib.normals[ 3 * index.normal_index + 0 ],
+					attrib.normals[ 3 * index.normal_index + 1 ],
+					attrib.normals[ 3 * index.normal_index + 2 ]
+				};
+			}
+
+			if ( index.texcoord_index >= 0 )
+			{
+				vertex.uv =
+				{
+					attrib.texcoords[ 2 * index.texcoord_index + 0 ],
+					attrib.texcoords[ 2 * index.texcoord_index + 1 ],
+				};
+			}
+
+			if ( uniqueVertices.count( vertex ) == 0 )
+			{
+				uniqueVertices[ vertex ]= static_cast< uint32_t >( vertices.size() );
+				vertices.push_back( vertex );
+			}
+
+			indices.push_back( uniqueVertices[ vertex ] );
+		}
+	}
+
+	//// TODO: Load the image using a library like STB image
+	//int texWidth, texHeight, texChannels;
+	//stbi_uc* pixels = stbi_load( "texture.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha );
+
+	//// Create Vulkan image object
+	//VkImage textureImage;
+	//VkDeviceMemory textureImageMemory;
+	//createImage( texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory );
+
+	//// Copy texture data to image
+	//transitionImageLayout( textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+	//copyBufferToImage( pixels, texWidth, texHeight, textureImage );
+	//transitionImageLayout( textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+
+	//// Create image view
+	//VkImageView textureImageView = createImageView( textureImage, VK_FORMAT_R8G8B8A8_UNORM );
+
+	//// Create sampler
+	//VkSampler textureSampler = createSampler();
+
+	//// Bind texture to shader (this is done in your shader code)
+}
+
+std::vector<glm::vec3> Model::ModelData::GetTriangles() const
+{
+	std::vector<glm::vec3> triangles;
+
+	// Iterate over the indices in groups of 3 to form triangles
+	for ( size_t i = 0; i < indices.size(); i += 3 )
+	{
+		// Retrieve the indices of the triangle vertices
+		uint32_t index0 = indices[ i ];
+		uint32_t index1 = indices[ i + 1 ];
+		uint32_t index2 = indices[ i + 2 ];
+
+		// Retrieve the positions of the triangle vertices from the vertex buffer
+		glm::vec3 v0 = vertices[ index0 ].position;
+		glm::vec3 v1 = vertices[ index1 ].position;
+		glm::vec3 v2 = vertices[ index2 ].position;
+
+		// Add the vertices to form the triangle
+		triangles.push_back( v0 );
+		triangles.push_back( v1 );
+		triangles.push_back( v2 );
+	}
+
+	return triangles;
 }

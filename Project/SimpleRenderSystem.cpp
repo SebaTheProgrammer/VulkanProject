@@ -14,7 +14,7 @@
 struct SimplePushConstantData
 {
 	glm::mat4 transform{ 1.f };
-	alignas( 16 ) glm::vec3 color;
+	glm::mat4 modelMatrix{ 1.f };
 };
 
 SimpleRenderSystem::SimpleRenderSystem( EngineDevice& device,
@@ -73,7 +73,7 @@ void SimpleRenderSystem::CreatePipeline( VkRenderPass renderPass )
 void SimpleRenderSystem::RenderGameObjects( 
 	VkCommandBuffer commandBuffer,
 	std::vector<GameObject>& gameObjects,
-	const Camera& camera )
+	Camera& camera )
 {
 	m_Pipeline->Bind( commandBuffer );
 
@@ -82,8 +82,10 @@ void SimpleRenderSystem::RenderGameObjects(
 	for ( auto& obj : gameObjects )
 	{
 		SimplePushConstantData push{};
-		push.transform = projectionView * obj.m_Transform.mat4();
-		push.color = obj.m_Color;
+		auto modelMatrix = obj.m_Transform.mat4();
+
+		push.transform = projectionView * modelMatrix;
+		push.modelMatrix = modelMatrix;
 
 		vkCmdPushConstants( commandBuffer, m_PipelineLayout,
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

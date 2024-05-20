@@ -3,7 +3,9 @@
 #include "GameObject.h"
 #include "Window.h"
 #include <limits>
-#include <iostream> // For debugging
+#include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/intersect.hpp>
 
 class MovementController
 {
@@ -20,12 +22,13 @@ public:
         int lookRight = GLFW_KEY_RIGHT;
         int lookUp = GLFW_KEY_UP;
         int lookDown = GLFW_KEY_DOWN;
-        int jump = GLFW_KEY_SPACE; // Add a key for jump
+        int jump = GLFW_KEY_SPACE;
+        int fall = GLFW_KEY_F;
     };
 
-    MovementController()
-    {
-    }
+    MovementController( std::vector<GameObject>& gameObjects ): m_GameObjects( gameObjects )
+	{
+	}
 
     void MoveInPlaneXZ( GLFWwindow* window, float dt, GameObject& gameObject )
     {
@@ -98,7 +101,13 @@ public:
         }
         if ( glfwGetKey( window, m_keyMappings.jump ) == GLFW_PRESS )
         {
-            Jump( gameObject );
+            m_JumpStrength = 4.0f;
+            Jump( gameObject, gameObject.m_Transform.translation.y );
+        }
+        if ( glfwGetKey( window, m_keyMappings.fall ) == GLFW_PRESS )
+        {
+            m_JumpStrength=0.0f;
+            Jump( gameObject, 0 );
         }
 
         if ( glm::dot( moveDir, moveDir ) > std::numeric_limits<float>::epsilon() )
@@ -106,7 +115,6 @@ public:
             gameObject.m_Transform.translation += glm::normalize( moveDir ) * m_MoveSpeed * dt;
         }
 
-        // Update vertical position
         Update( dt, gameObject );
     }
 
@@ -116,31 +124,83 @@ public:
         m_FirstMouse = false;
     }
 
-    void Jump( GameObject& gameObject )
+    void Jump( GameObject& gameObject, float startPos )
     {
         if ( !m_IsJumping )
         {
             m_IsJumping = true;
             m_VelocityY = m_JumpStrength;
-            m_StartJumpPosition = gameObject.m_Transform.translation.y;
         }
     }
 
-    void Update( float deltaTime, GameObject& gameObject )
+    void Update( float deltaTime, GameObject& camera )
     {
-        if ( m_IsJumping )
+        if ( camera.m_Transform.translation.y < 0.0f ) 
         {
-            m_VelocityY += m_Gravity * deltaTime;
-            m_CurrentPositionY = gameObject.m_Transform.translation.y - m_VelocityY * deltaTime;
-
-            if ( m_CurrentPositionY >= m_StartJumpPosition )
+            if ( m_IsJumping )
             {
-                m_CurrentPositionY = m_StartJumpPosition;
-                m_IsJumping = false;
-                m_VelocityY = 0.0f;
+                m_VelocityY += m_Gravity * deltaTime;
+                m_CurrentPositionY = camera.m_Transform.translation.y - m_VelocityY * deltaTime;
+
+                if ( m_CurrentPositionY >= m_StartJumpPosition )
+                {
+                    m_CurrentPositionY = m_StartJumpPosition;
+                    m_StartJumpPosition = 0;
+                    m_IsJumping = false;
+                    m_VelocityY = 0.0f;
+                }
+
+                camera.m_Transform.translation.y = m_CurrentPositionY;
             }
 
-            gameObject.m_Transform.translation.y = m_CurrentPositionY;
+            // Perform raycast to check for intersection with mesh
+            glm::vec3 rayOrigin = camera.m_Transform.translation;
+            glm::vec3 rayDirection = glm::vec3( 0.0f, -1.0f, 0.0f ); // Downward direction
+
+            bool foundIntersection = false;
+
+            for ( int index = 0; index < m_GameObjects.size(); ++index )
+            {
+                if ( m_GameObjects[ index ].m_Model != nullptr )
+                {
+                    std::vector<glm::vec3> triangles = m_GameObjects[ index ].m_Model->GetModelData().GetTriangles();
+
+                    if ( foundIntersection )
+                    {
+                        break;
+                    }
+                    for ( size_t i = 0; i < triangles.size(); i += 3 )
+                    {
+                        glm::vec3 vertex0 = triangles[ i ];
+                        glm::vec3 vertex1 = triangles[ i + 1 ];
+                        glm::vec3 vertex2 = triangles[ i + 2 ];
+
+                        glm::vec2 intersectionPoint;
+
+                        if ( glm::intersectRayTriangle( rayOrigin, rayDirection, vertex0, vertex1, vertex2, intersectionPoint, m_RayCastDistance ) )
+                        {
+                            // Adjust the start jump position based on the intersection point
+                            m_StartJumpPosition = intersectionPoint.y - 2; // Assuming 2 is the height of the player
+
+                            // Update the lowest intersection point found so far
+                            m_LowestIntersectionY = std::max( m_LowestIntersectionY, m_StartJumpPosition );
+
+                            foundIntersection = true;
+                        }
+                    }
+                }
+            }
+
+            // Check if any intersection occurred
+            if ( foundIntersection )
+            {
+                // Adjust the start jump position based on the lowest intersection point found
+                m_StartJumpPosition = m_LowestIntersectionY;
+            }
+        }
+        else 
+        {
+            m_VelocityY=0.0f;
         }
     }
 
@@ -149,17 +209,21 @@ public:
     float m_LookSpeed{ 0.3f };
 
 private:
-    double m_LastX, m_LastY;
+    double m_LastX{}, m_LastY{};
     bool m_FirstMouse = true;
     float m_Yaw = 0.0f;
     float m_Pitch = 0.0f;
 
     // Jump mechanics
-    float m_CurrentPositionY;
-    float m_VelocityY;
+    float m_CurrentPositionY{};
+    float m_VelocityY{};
     const float m_Gravity{ -9.8f };
-    const float m_JumpStrength{ 4.0f };
+    float m_JumpStrength{ 4.0f };
     bool m_IsJumping{ false };
 
-    float m_StartJumpPosition;
+    float m_StartJumpPosition{ 0 };
+    float m_LowestIntersectionY{ std::numeric_limits<float>::lowest() };
+    float m_RayCastDistance{ 1000.f };
+
+    std::vector<GameObject> m_GameObjects;
 };
