@@ -37,6 +37,7 @@ public:
 	public:
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		std::vector<glm::vec3> triangles;
 
 		void LoadModel( const std::string& filename );
 

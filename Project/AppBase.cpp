@@ -73,7 +73,7 @@ void AppBase::LoadGameObjects()
 
     auto gameObject = GameObject::Create();
     gameObject.m_Model = model;
-    gameObject.m_Transform.translation = { 0.f, 0.f, 0.f };
+    gameObject.m_Transform.translation = { 0.f, 0.f, 2.f };
     gameObject.m_Transform.scale = glm::vec3( 1.f );
 
     m_GameObjects.emplace_back( std::move( gameObject ) );

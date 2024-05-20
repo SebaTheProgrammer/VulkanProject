@@ -257,6 +257,8 @@ void Model::ModelData::LoadModel( const std::string& filename )
 		}
 	}
 
+	triangles = GetTriangles();
+
 	//// TODO: Load the image using a library like STB image
 	//int texWidth, texHeight, texChannels;
 	//stbi_uc* pixels = stbi_load( "texture.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha );

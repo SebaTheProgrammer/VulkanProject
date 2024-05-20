@@ -13,7 +13,8 @@ layout(push_constant) uniform Push
     mat4 modelMatrix;
 } push;
 
-const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
+const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, 3.0, -1.0));
+
 const float AMBIENT_INTENSITY = 0.02;
 
 void main() 
@@ -22,7 +23,7 @@ void main()
 
     vec3 normalWordSpace = normalize(mat3(push.modelMatrix) * normal);
 
-    float lightIntensity = AMBIENT_INTENSITY + max(dot(normalWordSpace, DIRECTION_TO_LIGHT),0);
+    float lightIntensity = AMBIENT_INTENSITY + max(dot(normalWordSpace, DIRECTION_TO_LIGHT),0)/2;
 
     fragColor=lightIntensity*color;
 }
