@@ -126,23 +126,23 @@ public:
         }
         if ( glfwGetKey( window, m_keyMappings.moveUp ) == GLFW_PRESS )
         {
+            m_IsFlying = true;
             m_VelocityY=0.0f;
             moveDir -= up;
         }
         if ( glfwGetKey( window, m_keyMappings.moveDown ) == GLFW_PRESS )
         {
+            m_IsFlying = true;
             m_VelocityY=0.0f;
             moveDir += up;
         }
         if ( glfwGetKey( window, m_keyMappings.jump ) == GLFW_PRESS )
         {
-            m_JumpStrength = 4.0f;
-            Jump( gameObject, gameObject.m_Transform.translation.y );
+            Jump( gameObject, m_JumpStrength );
         }
         if ( glfwGetKey( window, m_keyMappings.fall ) == GLFW_PRESS )
         {
-            m_JumpStrength=0.0f;
-            Jump( gameObject, 0 );
+            Jump( gameObject, 0.0f );
         }
 
         if ( glm::dot( moveDir, moveDir ) > std::numeric_limits<float>::epsilon() )
@@ -159,19 +159,19 @@ public:
         m_FirstMouse = false;
     }
 
-    void Jump( GameObject& gameObject, float startPos )
+    void Jump( GameObject& gameObject, float strength )
     {
-        if ( !m_IsJumping )
-        {
-            m_IsJumping = true;
-            m_VelocityY = m_JumpStrength;
-        }
+        m_IsFlying = false;
+        m_IsJumping = true;
+        m_VelocityY = strength;
     }
 
     void Update( float deltaTime, GameObject& camera )
     {
-        if ( camera.m_Transform.translation.y <= 0.0f ) 
+        if ( camera.m_Transform.translation.y <= 0.0f )
         {
+            if ( m_IsFlying ) { return; }
+
             m_VelocityY += m_Gravity * deltaTime;
             m_CurrentPositionY = camera.m_Transform.translation.y - m_VelocityY * deltaTime;
 
@@ -214,17 +214,16 @@ public:
 
                         if ( glm::intersectRayTriangle( rayOrigin, rayDirection, vertex0, vertex1, vertex2, intersectionPoint, m_RayCastDistance ) )
                         {
-                            m_StartJumpPosition = intersectionPoint.y - m_PlayerHeight;
+                            m_StartJumpPosition = intersectionPoint.y;
 
                             m_LowestIntersectionY = std::max( m_LowestIntersectionY, m_StartJumpPosition );
-                           
+
                             if ( m_RayCastDistance < m_MaxRayCastDistance )
                             {
                                 foundIntersection = true;
-                                std::cout << intersectionPoint.y << std::endl;
                             }
                         }
-                        else 
+                        else
                         {
                             m_IsJumping = true;
                         }
@@ -232,16 +231,14 @@ public:
                 }
             }
 
-            // Check if any intersection occurred
             if ( foundIntersection )
             {
-                // Adjust the start jump position based on the lowest intersection point found
-                m_StartJumpPosition = m_LowestIntersectionY;
+                m_StartJumpPosition = m_LowestIntersectionY - m_PlayerHeight;
             }
         }
-        else 
+        else
         {
-            m_VelocityY=0.0f;
+            m_VelocityY = 0.0f;
         }
     }
 
@@ -261,6 +258,7 @@ private:
     const float m_Gravity{ -9.8f };
     float m_JumpStrength{ 4.0f };
     bool m_IsJumping{ false };
+    bool m_IsFlying{ false };
 
     float m_StartJumpPosition{ 0 };
     float m_LowestIntersectionY{ std::numeric_limits<float>::lowest() };
