@@ -41,7 +41,7 @@ public:
 
 		void LoadModel( const std::string& filename );
 
-		std::vector<glm::vec3> GetTriangles() const;
+		std::vector<glm::vec3> GetTriangles();
 	};
 
 	static std::unique_ptr<Model> CreateModelFromFile

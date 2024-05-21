@@ -50,13 +50,15 @@ void AppBase::Run()
 
         float aspect = m_Renderer.GetAspectRatio();
         camera.SetPerspectiveProjection(
-			glm::radians( 45.f ), aspect, 0.1f, 1000.f );
+			glm::radians( 45.f ), aspect, 0.1f, 10000.f );
 
 		if ( auto commandBuffer = m_Renderer.BeginFrame() ) 
 		{
 			m_Renderer.BeginSwapChainRenderPass( commandBuffer );
+
 			simpleRenderSystem.RenderGameObjects
 			( commandBuffer, m_GameObjects, camera );
+
 			m_Renderer.EndSwapChainRenderPass( commandBuffer );
 			m_Renderer.EndFrame();
 		}
@@ -69,12 +71,12 @@ void AppBase::LoadGameObjects()
 {
 	std::shared_ptr<Model> model = 
        Model::CreateModelFromFile(
-           m_EngineDevice, "C:/Users/vryen/Desktop/Restart/VulkanProject/Project/Models/colored_cube.obj" );
+           m_EngineDevice, "C:/Users/vryen/Desktop/Restart/VulkanProject/Project/Models/wuhu.obj" );
 
     auto gameObject = GameObject::Create();
     gameObject.m_Model = model;
-    gameObject.m_Transform.translation = { 0.f, 0.f, 2.f };
-    gameObject.m_Transform.scale = glm::vec3( 1.f );
+    gameObject.m_Transform.translation = { 0.f, 0.f, 0.f };
+    gameObject.m_Transform.scale = glm::vec3( 0.001f );
 
     m_GameObjects.emplace_back( std::move( gameObject ) );
 }

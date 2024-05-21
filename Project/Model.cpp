@@ -282,24 +282,20 @@ void Model::ModelData::LoadModel( const std::string& filename )
 	//// Bind texture to shader (this is done in your shader code)
 }
 
-std::vector<glm::vec3> Model::ModelData::GetTriangles() const
+std::vector<glm::vec3> Model::ModelData::GetTriangles()
 {
 	std::vector<glm::vec3> triangles;
 
-	// Iterate over the indices in groups of 3 to form triangles
 	for ( size_t i = 0; i < indices.size(); i += 3 )
 	{
-		// Retrieve the indices of the triangle vertices
 		uint32_t index0 = indices[ i ];
 		uint32_t index1 = indices[ i + 1 ];
 		uint32_t index2 = indices[ i + 2 ];
 
-		// Retrieve the positions of the triangle vertices from the vertex buffer
 		glm::vec3 v0 = vertices[ index0 ].position;
 		glm::vec3 v1 = vertices[ index1 ].position;
 		glm::vec3 v2 = vertices[ index2 ].position;
 
-		// Add the vertices to form the triangle
 		triangles.push_back( v0 );
 		triangles.push_back( v1 );
 		triangles.push_back( v2 );

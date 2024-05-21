@@ -27,28 +27,39 @@ public:
         int sprint = GLFW_KEY_LEFT_SHIFT;
     };
 
-    MovementController( std::vector<GameObject>& gameObjects )
+    MovementController( std::vector<GameObject>& gameObjects ) : m_GameObjects( gameObjects )
     {
-        for ( int index = 0; index < gameObjects.size(); ++index )
+        for ( auto& gameObject : m_GameObjects )
         {
-            if ( gameObjects[ index ].m_Model != nullptr )
+            if ( gameObject.m_Model != nullptr )
             {
-                std::vector<glm::vec3> triangles = gameObjects[ index ].m_Model->GetModelData().GetTriangles();
-                glm::vec3 translation = gameObjects[ index ].m_Transform.translation;
-                glm::vec3 rotation = gameObjects[ index ].m_Transform.rotation;
-                glm::vec3 scale = gameObjects[ index ].m_Transform.scale;
+                TransformComponent& transform = gameObject.m_Transform;
+                std::vector<glm::vec3> triangles = gameObject.m_Model->GetModelData().triangles;
 
-                TransformTriangles( triangles, translation, rotation, scale );
+                TransformTriangles( transform, triangles );
+
+                m_TransformedTriangles.emplace_back( std::move( triangles ) );
             }
         }
-        m_GameObjects=gameObjects;
     }
 
-    void TransformTriangles( std::vector<glm::vec3>& triangles, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale )
+    void TransformTriangles( TransformComponent& transform, std::vector<glm::vec3>& triangles )
     {
-        TransformComponent transform{ translation, scale, rotation };
+        glm::vec3 scale = transform.scale;
+        glm::vec3 rotation = transform.rotation;
+        glm::vec3 translation = transform.translation;
 
-        glm::mat4 transformationMatrix = transform.mat4();
+        glm::mat4 scaleMatrix = glm::scale( glm::mat4( 1.0f ), scale );
+
+        glm::mat4 rotationX = glm::rotate( glm::mat4( 1.0f ), rotation.x, glm::vec3( 1, 0, 0 ) );
+        glm::mat4 rotationY = glm::rotate( glm::mat4( 1.0f ), rotation.y, glm::vec3( 0, 1, 0 ) );
+        glm::mat4 rotationZ = glm::rotate( glm::mat4( 1.0f ), rotation.z, glm::vec3( 0, 0, 1 ) );
+
+        glm::mat4 rotationMatrix = rotationZ * rotationY * rotationX;
+
+        glm::mat4 translationMatrix = glm::translate( glm::mat4( 1.0f ), translation );
+
+        glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
         for ( glm::vec3& vertex : triangles )
         {
@@ -198,28 +209,34 @@ public:
 
         bool foundIntersection = false;
         float closestIntersectionDistance = std::numeric_limits<float>::max();
+        constexpr float epsilon = 0.001f;
 
         for ( int index = 0; index < m_GameObjects.size(); ++index )
         {
             if ( m_GameObjects[ index ].m_Model != nullptr )
             {
-                std::vector<glm::vec3> triangles = m_GameObjects[ index ].m_Model->GetModelData().triangles;
-                TransformTriangles( triangles, m_GameObjects[ index ].m_Transform.translation, m_GameObjects[ index ].m_Transform.rotation, m_GameObjects[ index ].m_Transform.scale );
+                for ( const auto& triangles : m_TransformedTriangles )
+                {
+                    for ( size_t i = 0; i < triangles.size(); i += 3 )
+                    {
+                        glm::vec3 vertex0 = triangles[ i ];
+                        glm::vec3 vertex1 = triangles[ i + 1 ];
+                        glm::vec3 vertex2 = triangles[ i + 2 ];
 
-                for ( size_t i = 0; i < triangles.size(); i += 3 ) {
-                    glm::vec3 vertex0 = triangles[ i ];
-                    glm::vec3 vertex1 = triangles[ i + 1 ];
-                    glm::vec3 vertex2 = triangles[ i + 2 ];
+                        glm::vec2 intersectionPoint;
 
-                    glm::vec2 intersectionPoint;
+                        if ( glm::intersectRayTriangle( rayOrigin, rayDirection, vertex0, vertex1, vertex2, intersectionPoint, closestIntersectionDistance ) )
+                        {
+                            if ( closestIntersectionDistance < m_MaxRayCastDistance )
+                            {
+                                glm::vec3 intersectionPoint3D = rayOrigin + rayDirection * closestIntersectionDistance;
+                                if ( intersectionPoint3D.y ==0){return;}
+                                if ( intersectionPoint3D.y > 0 ) { intersectionPoint3D *= -1; }
 
-                    // Check if the ray intersects with the current triangle
-                    if ( glm::intersectRayTriangle( rayOrigin, rayDirection, vertex0, vertex1, vertex2, intersectionPoint, m_RayCastDistance ) ) {
-                        if ( m_RayCastDistance < closestIntersectionDistance && m_RayCastDistance < m_MaxRayCastDistance ) {
-                            closestIntersectionDistance = m_RayCastDistance;
-                            m_StartJumpPosition = intersectionPoint.y - m_PlayerHeight;
-                            m_LowestIntersectionY = std::max( m_LowestIntersectionY, m_StartJumpPosition );
-                            foundIntersection = true;
+                                m_StartJumpPosition = intersectionPoint3D.y - m_PlayerHeight;
+                                m_LowestIntersectionY = std::max( m_LowestIntersectionY, m_StartJumpPosition );
+                                foundIntersection = true;
+                            }
                         }
                     }
                 }
@@ -256,9 +273,10 @@ private:
     const float m_MaxRayCastDistance{ 100.f };
     float m_RayCastDistance{ m_MaxRayCastDistance };
 
-    const float m_PlayerHeight{ 2.0f };
-    const float m_MaxMoveSpeed{ 30.0f };
+    const float m_PlayerHeight{ 0.2f };
+    const float m_MaxMoveSpeed{ 3000.0f };
 
     std::vector<GameObject> m_GameObjects;
-
+    std::vector<TransformComponent> m_Transforms;
+    std::vector<std::vector<glm::vec3>> m_TransformedTriangles;
 };

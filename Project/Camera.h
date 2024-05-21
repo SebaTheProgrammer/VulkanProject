@@ -45,7 +45,7 @@ public:
     void SetViewDirection(
 		const glm::vec3 pos,
 		const glm::vec3 dir,
-		const glm::vec3 up = glm::vec3{0.f,-1.f,0.0f})
+		const glm::vec3 up = glm::vec3{0.f, 1.f,0.0f})
 	{
         const glm::vec3 w{ glm::normalize( dir ) };
         const glm::vec3 u{ glm::normalize( glm::cross( w, up ) ) };
@@ -97,7 +97,7 @@ public:
     void SetViewTarget(
 		const glm::vec3 pos,
 		const glm::vec3 target,
-		const glm::vec3 up = glm::vec3{ 0.f, -1.f, 0.0f })
+		const glm::vec3 up = glm::vec3{ 0.f, 1.f, 0.0f })
 	{
 		SetViewDirection( pos, target - pos, up );
 	}
