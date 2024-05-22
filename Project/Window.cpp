@@ -24,6 +24,22 @@ void Window::CreateWindowSurface( VkInstance instance, VkSurfaceKHR* surface )
 	}
 }
 
+void Window::UpdateFPS()
+{
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> elapsedTime = currentTime - m_LastTime;
+	m_FrameCount++;
+	if ( elapsedTime.count() >= 1.0f ) 
+	{
+		m_FPS = m_FrameCount / elapsedTime.count();
+		m_FPSString = "FPS: " + std::to_string( static_cast< int >( m_FPS ) );
+		m_FrameCount = 0;
+		m_LastTime = currentTime;
+		std::string newTitle = m_WindowName + " - FPS: " + std::to_string( static_cast< int >( m_FPS ) );
+		glfwSetWindowTitle( m_Window, newTitle.c_str() );
+	}
+}
+
 void Window::InitWindow()
 {
 	glfwInit();

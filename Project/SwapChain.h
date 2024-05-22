@@ -1,9 +1,6 @@
 #pragma once
-
 #include "EngineDevice.h"
-
 #include <vulkan/vulkan.h>
-
 #include <string>
 #include <vector>
 #include <memory>

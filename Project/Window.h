@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <vulkan/vulkan.h>
+#include <chrono>
 
 class Window
 {
@@ -23,6 +24,8 @@ public:
 
 	void CreateWindowSurface( VkInstance instance, VkSurfaceKHR* surface );
 
+	void UpdateFPS();
+
 	VkExtent2D GetExtent() { return 
 		{ static_cast<uint32_t>( m_Width ), 
 		static_cast<uint32_t>( m_Height ) }; }
@@ -39,4 +42,9 @@ private:
 
 	std::string m_WindowName;
 	GLFWwindow* m_Window;
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_LastTime;
+	int m_FrameCount = 0;
+	float m_FPS = 0.0f;
+	std::string m_FPSString;
 };

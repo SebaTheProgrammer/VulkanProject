@@ -7,10 +7,10 @@
 #include <GLFW/glfw3.h>
 #include <cassert>
 
+//Tait-Bryan angles, YZX
 class Camera
 {
 public:
-
     Camera() = default;
 
     void SetOrthographicProjection(

@@ -1,6 +1,4 @@
 #include "SwapChain.h"
-
-// std
 #include <array>
 #include <cstdlib>
 #include <cstring>
@@ -165,8 +163,8 @@ void SwapChain::CreateSwapChain() {
     createInfo.pQueueFamilyIndices = queueFamilyIndices;
   } else {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.queueFamilyIndexCount = 0;      // Optional
-    createInfo.pQueueFamilyIndices = nullptr;  // Optional
+    createInfo.queueFamilyIndexCount = 0;     
+    createInfo.pQueueFamilyIndices = nullptr;
   }
 
   createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
@@ -181,11 +179,6 @@ void SwapChain::CreateSwapChain() {
   if (vkCreateSwapchainKHR(m_Device.Device(), &createInfo, nullptr, &m_SwapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
   }
-
-  // we only specified a minimum number of images in the swap chain, so the implementation is
-  // allowed to create a swap chain with more. That's why we'll first query the final number of
-  // images with vkGetSwapchainImagesKHR, then resize the container and finally call it again to
-  // retrieve the handles.
 
   vkGetSwapchainImagesKHR(m_Device.Device(), m_SwapChain, &imageCount, nullptr);
   m_SwapChainImages.resize(imageCount);
@@ -398,13 +391,6 @@ VkPresentModeKHR SwapChain::ChooseSwapPresentMode(
       return availablePresentMode;
     }
   }
-
-  // for (const auto &availablePresentMode : availablePresentModes) {
-  //   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-  //     std::cout << "Present mode: Immediate" << std::endl;
-  //     return availablePresentMode;
-  //   }
-  // }
 
   std::cout << "Present mode: V-Sync" << std::endl;
   return VK_PRESENT_MODE_FIFO_KHR;
