@@ -152,11 +152,11 @@ void AppBase::LoadGameObjects()
 {
 	std::shared_ptr<Model> arena = 
        Model::CreateModelFromFile(
-           m_EngineDevice, "Models/wuhu.obj" );
+           m_EngineDevice, "Models/Island.json" );
     auto gameObject = GameObject::Create();
     gameObject.m_Model = arena;
-    gameObject.m_Transform.translation = { 0.f, 0.0f, 0.f };
-    gameObject.m_Transform.scale = glm::vec3( 0.001f );
+    gameObject.m_Transform.translation = arena->GetModelData().GetTransform().translation;
+    gameObject.m_Transform.scale = arena->GetModelData().GetTransform().scale;
     m_GameObjects.emplace_back( std::move( gameObject ) );
 
     //std::shared_ptr<Model> arena =
@@ -170,21 +170,12 @@ void AppBase::LoadGameObjects()
 
     std::shared_ptr<Model> model2 =
         Model::CreateModelFromFile(
-            m_EngineDevice, "Models/colored_cube.obj" );
+            m_EngineDevice, "Models/Cube.json" );
     auto gameObject2 = GameObject::Create();
     gameObject2.m_Model = model2;
-    gameObject2.m_Transform.translation = { 0.f, 0.f, 10.f };
-    gameObject2.m_Transform.scale = glm::vec3( 1.f );
+    gameObject2.m_Transform.translation = model2->GetModelData().GetTransform().translation;
+    gameObject2.m_Transform.scale = model2->GetModelData().GetTransform().scale;
     m_GameObjects.emplace_back( std::move( gameObject2 ) );
-
-    std::shared_ptr<Model> cubeFromjson =
-        Model::CreateModelFromFile(
-            m_EngineDevice, "Models/Cube.json" );
-    auto jsonGameObject = GameObject::Create();
-    jsonGameObject.m_Model = cubeFromjson;
-    jsonGameObject.m_Transform.translation = { 0.f, -10.f, 2.f };
-    jsonGameObject.m_Transform.scale = glm::vec3( 1.f );
-    m_GameObjects.emplace_back( std::move( jsonGameObject ) );
 
     //std::shared_ptr<Model> gun =
     //    Model::CreateModelFromFile(

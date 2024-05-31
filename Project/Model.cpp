@@ -274,42 +274,22 @@ void Model::ModelData::LoadModel( const std::string& filename )
 
 void  Model::ModelData::LoadJSON( const std::string& filename )
 {
-	// Open the JSON file
 	std::ifstream file( filename );
 	if ( !file.is_open() ) {
 		throw std::runtime_error( "Failed to open JSON file: " + filename );
 	}
 
-	// Parse JSON data
 	json jsonData;
 	file >> jsonData;
 
-	// Extract vertices and indices from JSON data
-	const json& verticesArray = jsonData[ "vertices" ];
-	const json& indicesArray = jsonData[ "indices" ];
+	std::string objFilePath = jsonData[ "obj_file_path" ].get<std::string>();
+	glm::vec3 location = glm::vec3( jsonData[ "location" ][ 0 ], jsonData[ "location" ][ 1 ], jsonData[ "location" ][ 2 ] );
+	float scale = jsonData[ "scale" ];
 
-	// Clear the vectors before populating them
-	vertices.clear();
-	indices.clear();
+	Model::ModelData::m_Transform.translation = location;
+	Model::ModelData::m_Transform.scale = glm::vec3( scale );
 
-	// Populate vertices vector
-	for ( const auto& vertexData : verticesArray ) {
-		Vertex vertex;
-		for ( int i = 0; i < 3; ++i ) {
-			vertex.position[ i ] = vertexData[ "position" ][ i ];
-			vertex.color[ i ] = vertexData[ "color" ][ i ];
-			vertex.normal[ i ] = vertexData[ "normal" ][ i ];
-		}
-		for ( int i = 0; i < 2; ++i ) {
-			vertex.uv[ i ] = vertexData[ "uv" ][ i ];
-		}
-		vertices.push_back( vertex );
-	}
-
-	// Populate indices vector
-	for ( const auto& index : indicesArray ) {
-		indices.push_back( index );
-	}
+	LoadModel( objFilePath );
 }
 
 std::vector<glm::vec3> Model::ModelData::GetTriangles()

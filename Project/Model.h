@@ -8,6 +8,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <memory>
+#include "FrameInfo.h"
 
 class Model 
 {
@@ -44,6 +45,9 @@ public:
 		void LoadJSON( const std::string& filename );
 
 		std::vector<glm::vec3> GetTriangles();
+
+		TransformComponent m_Transform{};
+		TransformComponent GetTransform() { return m_Transform; };
 	};
 
 	static std::unique_ptr<Model> CreateModelFromFile
@@ -60,6 +64,7 @@ public:
 	void Draw( VkCommandBuffer commandBuffer );
 
 	ModelData GetModelData() const;
+
 
 private:
 	void CreateVertexBuffer(const std::vector<Vertex>& vertices);
