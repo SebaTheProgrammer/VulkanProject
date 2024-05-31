@@ -7,23 +7,24 @@
 #include "SwapChain.h"
 #include "GameObject.h"
 #include "Camera.h"
+#include "FrameInfo.h"
 
 class SimpleRenderSystem
 {
 public:
     SimpleRenderSystem( EngineDevice& device,
-    VkRenderPass renderPass);
+    VkRenderPass renderPass,
+        VkDescriptorSetLayout globalSetLayout );
     ~SimpleRenderSystem();
 
     SimpleRenderSystem( const SimpleRenderSystem& ) = delete;
     SimpleRenderSystem( SimpleRenderSystem&& ) = delete;
 
-    void RenderGameObjects( VkCommandBuffer commandBuffer,
-    std::vector<GameObject>& gameObjects,
-        Camera& camera);
+    void RenderGameObjects( FrameInfo& frameinfo,
+    std::vector<GameObject>& gameObjects);
 
 private:
-    void CreatePipelineLayout();
+    void CreatePipelineLayout( VkDescriptorSetLayout globalSetLayout );
     void CreatePipeline( VkRenderPass renderPass );
 
     EngineDevice& m_EngineDevice;

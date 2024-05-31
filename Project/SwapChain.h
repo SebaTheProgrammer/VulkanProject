@@ -42,6 +42,7 @@ class SwapChain {
  private:
   void Init();
   void CreateSwapChain();
+  void CreateTextureImages();
   void CreateImageViews();
   void CreateDepthResources();
   void CreateRenderPass();
@@ -61,6 +62,10 @@ class SwapChain {
 
   std::vector<VkFramebuffer> m_SwapChainFramebuffers;
   VkRenderPass m_RenderPass;
+
+  std::vector<VkImage> m_TextureImages;
+  std::vector<VkImageView> m_TextureImageViews;
+  std::vector<VkDeviceMemory> m_TextureImagesMemory;
 
   std::vector<VkImage> m_DepthImages;
   std::vector<VkDeviceMemory> m_DepthImageMemorys;

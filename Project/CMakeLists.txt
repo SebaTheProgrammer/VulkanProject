@@ -39,6 +39,7 @@ set(SOURCES
     "Model.cpp"
     "Renderer.cpp"
     "SimpleRenderSystem.cpp"
+    "Buffer.cpp"
 )
 
 # Create the executable
@@ -46,7 +47,7 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES}
     "Camera.h" "SDL2-2.28.3/SDL_keyboard.h" "Pipeline.h" 
     "Model.h" "GameObject.h" "Renderer.h" "Renderer.cpp" 
     "SimpleRenderSystem.cpp" "Input.h"
-    "tiny_obj_loader.h" "Utils.h" "stb_image.h" )
+    "tiny_obj_loader.h" "Utils.h" "stb_image.h"  "Buffer.h"  "FrameInfo.h" "Descriptors.h" "Descriptors.cpp")
 
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Models DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 

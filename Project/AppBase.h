@@ -7,6 +7,7 @@
 #include "Model.h"
 #include "GameObject.h"
 #include "Renderer.h"
+#include "Descriptors.h"
 
 class AppBase
 {
@@ -21,6 +22,8 @@ public:
 
     void Run();
 
+    std::vector<GameObject>& GetGameObjects() { return m_GameObjects; }
+
 private:
     void LoadGameObjects();
 
@@ -30,6 +33,8 @@ private:
     Window m_Window;
     EngineDevice m_EngineDevice{ m_Window };
     Renderer m_Renderer{ m_Window, m_EngineDevice };
+
+    std::unique_ptr<DescriptorPool> m_GlobalDescriptorPool;
 
     std::vector<GameObject> m_GameObjects;
 };

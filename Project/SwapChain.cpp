@@ -6,6 +6,8 @@
 #include <limits>
 #include <set>
 #include <stdexcept>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 SwapChain::SwapChain(EngineDevice &deviceRef, VkExtent2D extent)
     : m_Device{deviceRef}, m_WindowExtent{extent} 
@@ -130,7 +132,8 @@ VkResult SwapChain::submitCommandBuffers(
   return result;
 }
 
-void SwapChain::CreateSwapChain() {
+void SwapChain::CreateSwapChain() 
+{
   SwapChainSupportDetails swapChainSupport = m_Device.GetSwapChainSupport();
 
   VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -188,7 +191,8 @@ void SwapChain::CreateSwapChain() {
   m_SwapChainExtent = extent;
 }
 
-void SwapChain::CreateImageViews() {
+void SwapChain::CreateImageViews() 
+{
   m_SwapChainImageViews.resize(m_SwapChainImages.size());
   for (size_t i = 0; i < m_SwapChainImages.size(); i++) {
     VkImageViewCreateInfo viewInfo{};
@@ -209,7 +213,8 @@ void SwapChain::CreateImageViews() {
   }
 }
 
-void SwapChain::CreateRenderPass() {
+void SwapChain::CreateRenderPass() 
+{
   VkAttachmentDescription depthAttachment{};
   depthAttachment.format = findDepthFormat();
   depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -273,7 +278,8 @@ void SwapChain::CreateRenderPass() {
   }
 }
 
-void SwapChain::CreateFramebuffers() {
+void SwapChain::CreateFramebuffers() 
+{
   m_SwapChainFramebuffers.resize(imageCount());
   for (size_t i = 0; i < imageCount(); i++) {
     std::array<VkImageView, 2> attachments = {m_SwapChainImageViews[i], m_DepthImageViews[i]};
@@ -298,7 +304,8 @@ void SwapChain::CreateFramebuffers() {
   }
 }
 
-void SwapChain::CreateDepthResources() {
+void SwapChain::CreateDepthResources() 
+{
   VkFormat depthFormat = findDepthFormat();
   m_SwapChainDepthFormat = depthFormat;
   VkExtent2D swapChainExtent = getSwapChainExtent();
@@ -347,7 +354,8 @@ void SwapChain::CreateDepthResources() {
   }
 }
 
-void SwapChain::CreateSyncObjects() {
+void SwapChain::CreateSyncObjects() 
+{
   m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -396,7 +404,8 @@ VkPresentModeKHR SwapChain::ChooseSwapPresentMode(
   return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D SwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) {
+VkExtent2D SwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) 
+{
   if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;
   } else {
@@ -412,7 +421,8 @@ VkExtent2D SwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
   }
 }
 
-VkFormat SwapChain::findDepthFormat() {
+VkFormat SwapChain::findDepthFormat() 
+{
   return m_Device.FindSupportedFormat(
       {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
       VK_IMAGE_TILING_OPTIMAL,

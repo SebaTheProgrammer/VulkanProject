@@ -155,17 +155,17 @@ private:
         m_VelocityY += m_Gravity * deltaTime;
         m_CurrentPositionY = camera.m_Transform.translation.y - m_VelocityY * deltaTime;
 
-        if ( m_IsFalling ) 
+        if ( m_IsFalling )
         {
             if ( m_CurrentPositionY >= m_StartJumpPosition )
             {
                 m_VelocityY = m_BounceStrength * m_JumpStrength;        //Bounce if needed
 
-                if ( m_BounceStrength > 0 ) 
+                if ( m_BounceStrength > 0 )
                 {
                     m_BounceStrength -= m_BounceDecay;
                 }
-                if ( m_VelocityY == 0 ) 
+                if ( m_VelocityY == 0 )
                 {
                     m_CurrentPositionY = m_StartJumpPosition;
                     m_StartJumpPosition = m_BottomWorldBound;
@@ -183,16 +183,19 @@ private:
         bool foundIntersection = false;
         float closestIntersectionDistance = std::numeric_limits<float>::max();
 
+        glm::vec2 intersectionPoint;
+        glm::vec3 vertex0;
+        glm::vec3 vertex1;
+        glm::vec3 vertex2;
+
         //Check for intersection with the triangles
         for ( auto& triangles : m_TransformedTriangles )
         {
             for ( size_t i = 0; i < triangles.size(); i += 3 )
             {
-                glm::vec3 vertex0 = triangles[ i ];
-                glm::vec3 vertex1 = triangles[ i + 1 ];
-                glm::vec3 vertex2 = triangles[ i + 2 ];
-
-                glm::vec2 intersectionPoint;
+                vertex0 = triangles[ i ];
+                vertex1 = triangles[ i + 1 ];
+                vertex2 = triangles[ i + 2 ];
 
                 //Raycast
                 if ( glm::intersectRayTriangle( rayOrigin, m_RayDirection, vertex0, vertex1, vertex2, intersectionPoint, closestIntersectionDistance ) )
@@ -222,6 +225,48 @@ private:
             m_StartJumpPosition = m_LowestIntersectionY;
         }
     }
+    void Shoot( GameObject& camera ) 
+    {
+        glm::vec3 rayOrigin = camera.m_Transform.translation;
+
+        glm::vec3 forward = camera.m_Transform.rotation;
+
+        float closestIntersectionDistance = std::numeric_limits<float>::max();
+
+        glm::vec2 intersectionPoint;
+        glm::vec3 vertex0;
+        glm::vec3 vertex1;
+        glm::vec3 vertex2;
+
+        for ( auto& triangles : m_TransformedTriangles )
+        {
+            for ( size_t i = 0; i < triangles.size(); i += 3 )
+            {
+                vertex0 = triangles[ i ];
+                vertex1 = triangles[ i + 1 ];
+                vertex2 = triangles[ i + 2 ];
+
+                if ( glm::intersectRayTriangle( rayOrigin, forward, vertex0, vertex1, vertex2, intersectionPoint, closestIntersectionDistance ) )
+                {
+                    if ( closestIntersectionDistance < m_MaxRayCastDistance )
+                    {
+                        if ( std::abs( closestIntersectionDistance ) > m_Epsilon )
+                        {
+                            glm::vec3 intersectionPoint3D = rayOrigin + m_RayDirection * closestIntersectionDistance;
+                            if ( intersectionPoint3D.y == 0 ) { return; }
+                            if ( intersectionPoint3D.y > 0 ) { intersectionPoint3D *= -1; }         //Setting for my world, you can change this, or remove it
+
+                            if ( std::abs( intersectionPoint3D.y ) > m_Epsilon )
+                            {
+                                std::cout << vertex0.x << " " << vertex0.y << " " << vertex0.z << std::endl;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     void CheckInputs( GLFWwindow* window, float dt, GameObject& gameObject ) 
     {
         if ( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_RIGHT ) == GLFW_PRESS )
@@ -258,6 +303,11 @@ private:
         {
             m_FirstMouse = true;
         }
+
+        if ( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_LEFT ) == GLFW_PRESS && m_CanShoot==true)
+        {
+            Shoot( gameObject );
+		}
 
         // Movement
         float yaw = gameObject.m_Transform.rotation.y;
@@ -358,13 +408,14 @@ private:
     float m_LookSpeed{ 0.3f };				    //You can change this to your needs
     float m_PlayerHeight{ 0.4f };			    //You can change this to your needs
     float m_Gravity{ -9.8f };                   //You can change this to your needs
-    const float m_BottomWorldBound{ 100.f };    //The bottom of your world, this is a safety cap
+    const float m_BottomWorldBound{ -0.2f };    //The bottom of your world, this is a safety cap
     const float m_MaxRayCastDistance{ 5.f };    //You can change this to your needs
     const float m_Epsilon{ 0.0001f };           //You can change this to your needs, but don't tweak to much
     glm::vec3 m_RayDirection{ 0.0f, -1.0f, 0.0f };
     float m_BounceStrength{ 0.0f };             //You can change this to your needs
     const float m_BounceDecay{ 1.f };           //You can change this to your needs
 
+    bool m_CanShoot{ true };
     bool m_IsFalling{ true };				    //Set this to true to fall, or use the function Jump
     bool m_IsFlying{ false };                   //Set this to true to fly, or use the function Fly
     bool m_IsJumping{ false };

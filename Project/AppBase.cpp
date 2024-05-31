@@ -14,10 +14,25 @@
 #include "Camera.h"
 #include <chrono>
 #include "Input.h"
+#include "Buffer.h"
+#include <numeric>
 
-AppBase::AppBase() : 
-	WIDTH{ 800 }, HEIGHT{ 600 }, m_Window{ WIDTH, HEIGHT, std::string{"Vryens Sebastiaan Vulkan"} }
+struct GlobalUbo
 {
+    glm::mat4 viewProj{ 1.f };
+	glm::vec3 lightDirection= 
+        glm::normalize( glm::vec3{ 1.f, 3.f, -1.f } );
+};
+
+AppBase::AppBase() :
+    WIDTH{ 800 }, HEIGHT{ 600 }, m_Window{ WIDTH, HEIGHT,
+    std::string{"Vryens Sebastiaan Vulkan"} } 
+{
+    m_GlobalDescriptorPool = DescriptorPool::Builder( m_EngineDevice )
+        .setMaxSets( SwapChain::MAX_FRAMES_IN_FLIGHT )
+        .addPoolSize( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT )
+        .build();
+
 	LoadGameObjects();
 }
 
@@ -25,8 +40,37 @@ AppBase::~AppBase(){}
 
 void AppBase::Run()
 {
+    auto minOffsetAllignment = std::lcm(
+        m_EngineDevice.properties.limits.minUniformBufferOffsetAlignment,
+        m_EngineDevice.properties.limits.nonCoherentAtomSize );
+
+    Buffer globalUboBuffer{ m_EngineDevice, sizeof( GlobalUbo ),
+            SwapChain::MAX_FRAMES_IN_FLIGHT, 
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+        minOffsetAllignment };
+
+    globalUboBuffer.map();
+
+    auto globalSetLayout = DescriptorSetLayout::Builder( m_EngineDevice )
+		.addBinding( 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT )
+		.build();
+
+    std::vector<VkDescriptorSet> globalDescriptorSets(
+        SwapChain::MAX_FRAMES_IN_FLIGHT );
+    for ( size_t i = 0; i < globalDescriptorSets.size(); i++ ) 
+    {
+        auto bufferinfo = globalUboBuffer.descriptorInfo();
+
+        DescriptorWriter(*globalSetLayout, *m_GlobalDescriptorPool)
+			.writeBuffer(0, &bufferinfo )
+            .build(globalDescriptorSets[i]);
+	}
+
 	SimpleRenderSystem simpleRenderSystem{ 
-		m_EngineDevice, m_Renderer.GetSwapChainRenderPass() };
+		m_EngineDevice, m_Renderer.GetSwapChainRenderPass(),
+    globalSetLayout->getDescriptorSetLayout()};
+
     Camera camera{};
     auto viewer = GameObject::Create();
     MovementController movementController{m_GameObjects};
@@ -66,10 +110,23 @@ void AppBase::Run()
 
 		if ( auto commandBuffer = m_Renderer.BeginFrame() ) 
 		{
+            int frameIndex = m_Renderer.GetFrameIndex();
+            FrameInfo frameInfo{ 
+                frameIndex,  frameTime, 
+                commandBuffer, camera, globalDescriptorSets[frameIndex]};
+
+            //update
+            GlobalUbo ubo{};
+            ubo.viewProj = camera.GetProjectionMatrix()*camera.GetViewMatrix();
+            globalUboBuffer.writeToIndex( 
+                &ubo, frameIndex );
+            globalUboBuffer.flushIndex( frameIndex );
+
+            //render
 			m_Renderer.BeginSwapChainRenderPass( commandBuffer );
 
 			simpleRenderSystem.RenderGameObjects
-			( commandBuffer, m_GameObjects, camera );
+			( frameInfo, m_GameObjects );
 
 			m_Renderer.EndSwapChainRenderPass( commandBuffer );
 			m_Renderer.EndFrame();
@@ -90,12 +147,21 @@ void AppBase::LoadGameObjects()
     gameObject.m_Transform.scale = glm::vec3( 0.001f );
     m_GameObjects.emplace_back( std::move( gameObject ) );
 
+    //std::shared_ptr<Model> arena =
+    //    Model::CreateModelFromFile(
+    //        m_EngineDevice, "Models/Arena.obj" );
+    //auto gameObject = GameObject::Create();
+    //gameObject.m_Model = arena;
+    //gameObject.m_Transform.translation = { 0.f, 0.0f, 0.f };
+    //gameObject.m_Transform.scale = glm::vec3( 3.f );
+    //m_GameObjects.emplace_back( std::move( gameObject ) );
+
     std::shared_ptr<Model> model2 =
         Model::CreateModelFromFile(
             m_EngineDevice, "Models/colored_cube.obj" );
     auto gameObject2 = GameObject::Create();
     gameObject2.m_Model = model2;
-    gameObject2.m_Transform.translation = { 0.f, -20.f, 10.f };
+    gameObject2.m_Transform.translation = { 0.f, 0.f, 10.f };
     gameObject2.m_Transform.scale = glm::vec3( 1.f );
     m_GameObjects.emplace_back( std::move( gameObject2 ) );
 
