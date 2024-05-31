@@ -10,7 +10,8 @@
 #include "GameObject.h"
 #include <glm/gtc/constants.hpp>
 #include "Renderer.h"
-#include "SimpleRenderSystem.h"
+#include "Systems/SimpleRenderSystem.h"
+#include "Systems/PointLightSystem.h"
 #include "Camera.h"
 #include <chrono>
 #include "Input.h"
@@ -19,9 +20,10 @@
 
 struct GlobalUbo
 {
-    glm::mat4 viewProj{ 1.f };
+    glm::mat4 projection{ 1.f };
+    glm::mat4 view{ 1.f };
     glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.2f };
-	glm::vec3 lightPosition{ 1.f, 200.f, -1.f };
+	glm::vec3 lightPosition{ 1.f, -200.f, -1.f };
     alignas(16) glm::vec4 lightColor{ 1.f,1.f, 0.7f, 20000.f };
 };
 
@@ -72,6 +74,10 @@ void AppBase::Run()
 		m_EngineDevice, m_Renderer.GetSwapChainRenderPass(),
     globalSetLayout->getDescriptorSetLayout()};
 
+    PointLightSystem pointLightSystem{
+    m_EngineDevice, m_Renderer.GetSwapChainRenderPass(),
+    globalSetLayout->getDescriptorSetLayout() };
+
     Camera camera{};
     auto viewer = GameObject::Create();
     viewer.m_Transform.translation = { 0.f, -5.f, 0.f };
@@ -94,7 +100,9 @@ void AppBase::Run()
         currentTime = newTime;
         frameTime = std::min( frameTime, 0.1f );
 
-        physicsCube.UpdatePhysics( m_Window.GetGLFWwindow(), frameTime, m_GameObjects[1]);
+        if ( m_GameObjects.size() > 1 ) {
+            physicsCube.UpdatePhysics( m_Window.GetGLFWwindow(), frameTime, m_GameObjects[ 1 ] );
+        }
 
         camera.SetViewYXZ( viewer.m_Transform.translation, viewer.m_Transform.rotation);
         movementController.UpdatePhysics( m_Window.GetGLFWwindow(), frameTime, viewer );
@@ -120,16 +128,17 @@ void AppBase::Run()
 
             //update
             GlobalUbo ubo{};
-            ubo.viewProj = camera.GetProjectionMatrix()*camera.GetViewMatrix();
+            ubo.projection = camera.GetProjectionMatrix();
+            ubo.view = camera.GetViewMatrix();
+
             globalUboBuffer.writeToIndex( 
                 &ubo, frameIndex );
             globalUboBuffer.flushIndex( frameIndex );
 
             //render
 			m_Renderer.BeginSwapChainRenderPass( commandBuffer );
-
-			simpleRenderSystem.RenderGameObjects
-			( frameInfo, m_GameObjects );
+			simpleRenderSystem.RenderGameObjects( frameInfo, m_GameObjects );
+			pointLightSystem.Render( frameInfo );
 
 			m_Renderer.EndSwapChainRenderPass( commandBuffer );
 			m_Renderer.EndFrame();

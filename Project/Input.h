@@ -258,7 +258,7 @@ private:
 
                             if ( std::abs( intersectionPoint3D.y ) > m_Epsilon )
                             {
-                                std::cout << vertex0.x << " " << vertex0.y << " " << vertex0.z << std::endl;
+
                             }
                         }
                     }
