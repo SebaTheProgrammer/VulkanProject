@@ -43,10 +43,9 @@ public:
 
     //your objects or just parse all your vertices/triangles to m_TransformedTriangles
     MovementController() = default;
-    MovementController( GameObject& gameObject ) { m_GameObjects.emplace_back( std::move( gameObject ) ); UpdateTriangles( m_GameObjects ); };
-    MovementController( std::vector<GameObject>& gameObjects )
+    MovementController( GameObject& gameObject ) { m_GameObjects.emplace_back( gameObject ); UpdateTriangles( m_GameObjects ); };
+    MovementController( std::vector<GameObject>& gameObjects ) : m_GameObjects( gameObjects )
     {
-        m_GameObjects = std::move( gameObjects );
         UpdateTriangles( gameObjects );
     }
     MovementController( std::vector<std::vector<glm::vec3>> transformedTriangles ) { m_TransformedTriangles = transformedTriangles; };
@@ -56,7 +55,7 @@ public:
     void UpdateTriangles( GameObject& gameObject )
 	{
         m_GameObjects.clear();
-		m_GameObjects.emplace_back( std::move( gameObject ) );
+		m_GameObjects.emplace_back( gameObject );
 		m_TransformedTriangles.clear();
 		for ( auto& gameObject : m_GameObjects )
 		{
@@ -75,7 +74,7 @@ public:
 	}
     void UpdateTriangles( std::vector<GameObject>& gameObjects )
     {
-        m_GameObjects = std::move( gameObjects );
+        m_GameObjects = gameObjects;
         m_TransformedTriangles.clear();
         for ( auto& gameObject : m_GameObjects )
         {

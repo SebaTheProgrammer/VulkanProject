@@ -26,6 +26,7 @@ add_custom_target(
 
 file(GLOB_RECURSE MODEL_FILES
     "${MODELS_SOURCE_DIR}/*.obj"
+        "${MODELS_SOURCE_DIR}/*.json"
 )
 
 # Define the sources for the executable
@@ -49,7 +50,7 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES}
     "Camera.h" "SDL2-2.28.3/SDL_keyboard.h" "Pipeline.h" 
     "Model.h" "GameObject.h" "Renderer.h" "Renderer.cpp" 
     "Systems/SimpleRenderSystem.cpp" "Input.h"
-    "tiny_obj_loader.h" "Utils.h" "stb_image.h"  "Buffer.h"  "FrameInfo.h" "Descriptors.h" "Systems/PointLightSystem.h")
+    "tiny_obj_loader.h" "Utils.h" "stb_image.h"  "Buffer.h"  "FrameInfo.h" "Descriptors.h" "Systems/PointLightSystem.h" "json.hpp")
 
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Models DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 

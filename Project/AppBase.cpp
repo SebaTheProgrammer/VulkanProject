@@ -18,6 +18,15 @@
 #include "Buffer.h"
 #include <numeric>
 
+struct GlobalUbo
+{
+    glm::mat4 projection{ 1.f };
+    glm::mat4 view{ 1.f };
+    glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.2f };
+	glm::vec3 lightPosition{ 1.f, -200.f, -1.f };
+    alignas(16) glm::vec4 lightColor{ 1.f,1.f, 0.7f, 20000.f };
+};
+
 AppBase::AppBase() :
     WIDTH{ 800 }, HEIGHT{ 600 }, m_Window{ WIDTH, HEIGHT,
     std::string{"Vryens Sebastiaan Vulkan"} } 
@@ -121,7 +130,7 @@ void AppBase::Run()
             GlobalUbo ubo{};
             ubo.projection = camera.GetProjectionMatrix();
             ubo.view = camera.GetViewMatrix();
-            pointLightSystem.Update( frameInfo, ubo, m_GameObjects );
+
             globalUboBuffer.writeToIndex( 
                 &ubo, frameIndex );
             globalUboBuffer.flushIndex( frameIndex );
@@ -129,7 +138,7 @@ void AppBase::Run()
             //render
 			m_Renderer.BeginSwapChainRenderPass( commandBuffer );
 			simpleRenderSystem.RenderGameObjects( frameInfo, m_GameObjects );
-			pointLightSystem.Render( frameInfo, m_GameObjects );
+			pointLightSystem.Render( frameInfo );
 
 			m_Renderer.EndSwapChainRenderPass( commandBuffer );
 			m_Renderer.EndFrame();
@@ -168,6 +177,15 @@ void AppBase::LoadGameObjects()
     gameObject2.m_Transform.scale = glm::vec3( 1.f );
     m_GameObjects.emplace_back( std::move( gameObject2 ) );
 
+    std::shared_ptr<Model> cubeFromjson =
+        Model::CreateModelFromFile(
+            m_EngineDevice, "Models/Cube.json" );
+    auto jsonGameObject = GameObject::Create();
+    jsonGameObject.m_Model = cubeFromjson;
+    jsonGameObject.m_Transform.translation = { 0.f, -10.f, 2.f };
+    jsonGameObject.m_Transform.scale = glm::vec3( 1.f );
+    m_GameObjects.emplace_back( std::move( jsonGameObject ) );
+
     //std::shared_ptr<Model> gun =
     //    Model::CreateModelFromFile(
     //        m_EngineDevice, "Models/Gun.obj" );
@@ -177,24 +195,4 @@ void AppBase::LoadGameObjects()
     //gameObject3.m_Transform.scale = glm::vec3( 0.1f );
     //m_GameObjects.emplace_back( std::move( gameObject3 ) );
 
-    std::vector<glm::vec3> lightColors{
-     {1.f, .1f, .1f},
-     {.1f, .1f, 1.f},
-     {.1f, 1.f, .1f},
-     {1.f, 1.f, .1f},
-     {.1f, 1.f, 1.f},
-     {1.f, 1.f, 1.f}
-    };
-
-    for( size_t i = 0; i < lightColors.size(); i++ )
-	{
-		auto pointLight = GameObject::CreateLightPoint( 0.2f );
-        pointLight.m_Color = lightColors[ i ];
-
-		auto rotateLight = glm::rotate( glm::mat4( 1.f ), 
-			glm::two_pi<float>() * i / lightColors.size(), 
-			glm::vec3( 0.f, 1.f, 0.f ) );
-        pointLight.m_Transform.translation = glm::vec3(rotateLight*glm::vec4( -1.f, -1.f, -1.f, 1.f ) );
-		m_GameObjects.emplace_back( std::move( pointLight ) );
-	}
 }

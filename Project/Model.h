@@ -41,6 +41,7 @@ public:
 		std::vector<glm::vec3> triangles;
 
 		void LoadModel( const std::string& filename );
+		void LoadJSON( const std::string& filename );
 
 		std::vector<glm::vec3> GetTriangles();
 	};

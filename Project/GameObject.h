@@ -75,51 +75,25 @@ struct TransformComponent
     }
 };
 
-struct PointLightComponent
-{
-	float intensity{ 1.0f };
-};
-
 class GameObject
 {
 public:
-    using id_t = unsigned int;
+	using id_t =unsigned int;
 
-    static GameObject Create()
-    {
-        static id_t currentId = 0;
-        return GameObject{ currentId++ };
-    }
+	static GameObject Create()
+	{
+		static id_t currentId = 0;
+		return GameObject{ currentId++ };
+	}
 
-    static GameObject CreateLightPoint(
-        float intensity = 10.f, float radius = 1.f,
-        glm::vec3 color = glm::vec3{ 1.f } )
-    {
-        GameObject gameObj = Create();
-        gameObj.m_Color = color;
-        gameObj.m_Transform.scale.x = radius;
-        gameObj.m_PointLight = std::make_unique<PointLightComponent>();
-        gameObj.m_PointLight->intensity = intensity;
+	id_t GetId() const { return m_id; }
 
-        return gameObj;
-    }
-
-    id_t GetId() const { return m_id; }
-
-    glm::vec3 m_Color{ 1.0f, 1.0f, 1.0f };
-    TransformComponent m_Transform{};
-
-    std::shared_ptr<Model> m_Model{};
-    std::unique_ptr<PointLightComponent> m_PointLight = nullptr;
-
-    GameObject( const GameObject& other ) = delete;
-    GameObject& operator=( const GameObject& other ) = delete;
-    GameObject( GameObject&& other ) noexcept = default;
-    GameObject& operator=( GameObject&& other ) noexcept = default;
-    ~GameObject() = default;
+	std::shared_ptr<Model> m_Model{};
+	glm::vec3 m_Color{ 1.0f, 1.0f, 1.0f };
+	TransformComponent m_Transform{};
 
 private:
-    GameObject( id_t id ) : m_id{ id } {};
+	GameObject( id_t id ) : m_id{ id } {};
 
-    id_t m_id;
+		id_t m_id;
 };

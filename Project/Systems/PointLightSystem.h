@@ -20,8 +20,7 @@ public:
     PointLightSystem( const PointLightSystem& ) = delete;
     PointLightSystem( PointLightSystem&& ) = delete;
 
-    void Render( FrameInfo& frameinfo, std::vector<GameObject>& gameobjects );
-    void Update( FrameInfo& frameinfo, GlobalUbo& ubo, std::vector<GameObject>& gameobjects );
+    void Render( FrameInfo& frameinfo );
 
 private:
     void CreatePipelineLayout( VkDescriptorSetLayout globalSetLayout );

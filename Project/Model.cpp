@@ -9,6 +9,9 @@
 #include <unordered_map>
 #include "stb_image.h"
 #include "Buffer.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 namespace std 
 {
@@ -50,7 +53,17 @@ void Model::Bind( VkCommandBuffer commandBuffer )
 std::unique_ptr<Model> Model::CreateModelFromFile( EngineDevice& device, const std::string& filename )
 {
 	ModelData modelData;
-	modelData.LoadModel( filename );
+
+	std::string extension = std::filesystem::path( filename ).extension().string();
+	if ( extension == ".obj" ) {
+		modelData.LoadModel( filename );
+	}
+	else if ( extension == ".json" ) {
+		modelData.LoadJSON( filename );
+	}
+	else {
+		throw std::runtime_error( "Unsupported file format: " + extension );
+	}
 	return std::make_unique<Model>( device, modelData );
 }
 
@@ -172,7 +185,7 @@ void Model::ModelData::LoadModel( const std::string& filename )
 
 	if ( !tinyobj::LoadObj( &attrib, &shapes, &materials, &warn, &err, filename.c_str() ) )
 	{
-		std::cout<< warn + err << std::endl;
+		std::cout << warn + err << std::endl;
 		throw std::runtime_error( warn + err );
 	}
 
@@ -257,6 +270,46 @@ void Model::ModelData::LoadModel( const std::string& filename )
 	//VkSampler textureSampler = createSampler();
 
 	//// Bind texture to shader (this is done in your shader code)
+}
+
+void  Model::ModelData::LoadJSON( const std::string& filename )
+{
+	// Open the JSON file
+	std::ifstream file( filename );
+	if ( !file.is_open() ) {
+		throw std::runtime_error( "Failed to open JSON file: " + filename );
+	}
+
+	// Parse JSON data
+	json jsonData;
+	file >> jsonData;
+
+	// Extract vertices and indices from JSON data
+	const json& verticesArray = jsonData[ "vertices" ];
+	const json& indicesArray = jsonData[ "indices" ];
+
+	// Clear the vectors before populating them
+	vertices.clear();
+	indices.clear();
+
+	// Populate vertices vector
+	for ( const auto& vertexData : verticesArray ) {
+		Vertex vertex;
+		for ( int i = 0; i < 3; ++i ) {
+			vertex.position[ i ] = vertexData[ "position" ][ i ];
+			vertex.color[ i ] = vertexData[ "color" ][ i ];
+			vertex.normal[ i ] = vertexData[ "normal" ][ i ];
+		}
+		for ( int i = 0; i < 2; ++i ) {
+			vertex.uv[ i ] = vertexData[ "uv" ][ i ];
+		}
+		vertices.push_back( vertex );
+	}
+
+	// Populate indices vector
+	for ( const auto& index : indicesArray ) {
+		indices.push_back( index );
+	}
 }
 
 std::vector<glm::vec3> Model::ModelData::GetTriangles()
