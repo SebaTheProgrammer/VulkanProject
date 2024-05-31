@@ -1,0 +1,15 @@
+{
+  "num_game_objects": 2,
+  "game_objects": [
+    {
+      "obj_file_path": "Models/wuhu.obj",
+      "location": [ 0.0, 0.0, 0.0 ],
+      "scale": 0.001
+    },
+    {
+      "obj_file_path": "Models/Cube.obj",
+      "location": [ 0.0, -10.0, 20.0 ],
+      "scale": 1.0
+    }
+  ]
+}

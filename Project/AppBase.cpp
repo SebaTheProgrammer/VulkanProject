@@ -17,6 +17,7 @@
 #include "Input.h"
 #include "Buffer.h"
 #include <numeric>
+#include "SceneLoader.h"
 
 struct GlobalUbo
 {
@@ -150,14 +151,9 @@ void AppBase::Run()
 
 void AppBase::LoadGameObjects()
 {
-	std::shared_ptr<Model> arena = 
-       Model::CreateModelFromFile(
-           m_EngineDevice, "Models/Island.json" );
-    auto gameObject = GameObject::Create();
-    gameObject.m_Model = arena;
-    gameObject.m_Transform.translation = arena->GetModelData().GetTransform().translation;
-    gameObject.m_Transform.scale = arena->GetModelData().GetTransform().scale;
-    m_GameObjects.emplace_back( std::move( gameObject ) );
+    SceneLoader sceneLoader{};
+	auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene1.json" );
+	m_GameObjects = std::move( gameObjects );
 
     //std::shared_ptr<Model> arena =
     //    Model::CreateModelFromFile(
@@ -168,14 +164,14 @@ void AppBase::LoadGameObjects()
     //gameObject.m_Transform.scale = glm::vec3( 3.f );
     //m_GameObjects.emplace_back( std::move( gameObject ) );
 
-    std::shared_ptr<Model> model2 =
+  /*  std::shared_ptr<Model> model2 =
         Model::CreateModelFromFile(
             m_EngineDevice, "Models/Cube.json" );
     auto gameObject2 = GameObject::Create();
     gameObject2.m_Model = model2;
     gameObject2.m_Transform.translation = model2->GetModelData().GetTransform().translation;
     gameObject2.m_Transform.scale = model2->GetModelData().GetTransform().scale;
-    m_GameObjects.emplace_back( std::move( gameObject2 ) );
+    m_GameObjects.emplace_back( std::move( gameObject2 ) );*/
 
     //std::shared_ptr<Model> gun =
     //    Model::CreateModelFromFile(

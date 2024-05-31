@@ -1,0 +1,20 @@
+{
+  "num_game_objects": 3,
+  "game_objects": [
+    {
+      "obj_file_path": "Models/Cube.obj",
+      "location": [ 0.0, -10.0, 2.0 ],
+      "scale": 1.0
+    },
+    {
+      "obj_file_path": "Models/Cube.obj",
+      "location": [ 1.0, 5.0, -3.0 ],
+      "scale": 0.5
+    },
+    {
+      "obj_file_path": "Models/Cube.obj",
+      "location": [ -2.0, 3.0, 4.0 ],
+      "scale": 2.0
+    }
+  ]
+}
