@@ -20,8 +20,9 @@
 struct GlobalUbo
 {
     glm::mat4 viewProj{ 1.f };
-	glm::vec3 lightDirection= 
-        glm::normalize( glm::vec3{ 1.f, 3.f, -1.f } );
+    glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.2f };
+	glm::vec3 lightPosition{ 1.f, 200.f, -1.f };
+    alignas(16) glm::vec4 lightColor{ 1.f,1.f, 0.7f, 20000.f };
 };
 
 AppBase::AppBase() :
@@ -73,6 +74,8 @@ void AppBase::Run()
 
     Camera camera{};
     auto viewer = GameObject::Create();
+    viewer.m_Transform.translation = { 0.f, -5.f, 0.f };
+
     MovementController movementController{m_GameObjects};
     auto currentTime = std::chrono::high_resolution_clock::now();
 
