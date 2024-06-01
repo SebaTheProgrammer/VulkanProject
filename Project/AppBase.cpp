@@ -152,8 +152,12 @@ void AppBase::Run()
 void AppBase::LoadGameObjects()
 {
     SceneLoader sceneLoader{};
-	auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene1.json" );
-	m_GameObjects = std::move( gameObjects );
+    auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene1.json");
+    m_GameObjects = std::move( gameObjects );
+
+  /*  SceneLoader sceneLoader{};
+	auto gameObjects = sceneLoader.LoadInstancedGameObjects( m_EngineDevice, "Models/Scene2.json",true, 1000 );
+	m_GameObjects = std::move( gameObjects );*/
 
     //std::shared_ptr<Model> arena =
     //    Model::CreateModelFromFile(
@@ -163,23 +167,4 @@ void AppBase::LoadGameObjects()
     //gameObject.m_Transform.translation = { 0.f, 0.0f, 0.f };
     //gameObject.m_Transform.scale = glm::vec3( 3.f );
     //m_GameObjects.emplace_back( std::move( gameObject ) );
-
-  /*  std::shared_ptr<Model> model2 =
-        Model::CreateModelFromFile(
-            m_EngineDevice, "Models/Cube.json" );
-    auto gameObject2 = GameObject::Create();
-    gameObject2.m_Model = model2;
-    gameObject2.m_Transform.translation = model2->GetModelData().GetTransform().translation;
-    gameObject2.m_Transform.scale = model2->GetModelData().GetTransform().scale;
-    m_GameObjects.emplace_back( std::move( gameObject2 ) );*/
-
-    //std::shared_ptr<Model> gun =
-    //    Model::CreateModelFromFile(
-    //        m_EngineDevice, "Models/Gun.obj" );
-    //auto gameObject3 = GameObject::Create();
-    //gameObject3.m_Model = gun;
-    //gameObject3.m_Transform.translation = { 0.f, 0.f, 0.f };
-    //gameObject3.m_Transform.scale = glm::vec3( 0.1f );
-    //m_GameObjects.emplace_back( std::move( gameObject3 ) );
-
 }
