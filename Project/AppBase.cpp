@@ -118,7 +118,6 @@ void AppBase::Run()
                 &ubo, frameIndex );
             globalUboBuffer.flushIndex( frameIndex );
 
-
             //render
             m_Renderer.BeginSwapChainRenderPass( commandBuffer );
             simpleRenderSystem.RenderGameObjects( frameInfo, m_GameObjects );
@@ -134,13 +133,13 @@ void AppBase::Run()
 
 void AppBase::LoadGameObjects()
 {
-    //SceneLoader sceneLoader{};
-    //auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene1.json");
-    //m_GameObjects = std::move( gameObjects );
-
     SceneLoader sceneLoader{};
-	auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene2.json" );
-	m_GameObjects = std::move( gameObjects );
+    auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene1.json");
+    m_GameObjects = std::move( gameObjects );
+
+    //SceneLoader sceneLoader{};
+	//auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene2.json" );
+	//m_GameObjects = std::move( gameObjects );
 
     //std::shared_ptr<Model> arena =
     //    Model::CreateModelFromFile(
