@@ -63,10 +63,6 @@ class SwapChain {
   std::vector<VkFramebuffer> m_SwapChainFramebuffers;
   VkRenderPass m_RenderPass;
 
-  std::vector<VkImage> m_TextureImages;
-  std::vector<VkImageView> m_TextureImageViews;
-  std::vector<VkDeviceMemory> m_TextureImagesMemory;
-
   std::vector<VkImage> m_DepthImages;
   std::vector<VkDeviceMemory> m_DepthImageMemorys;
   std::vector<VkImageView> m_DepthImageViews;

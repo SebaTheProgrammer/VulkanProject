@@ -1,5 +1,6 @@
 {
   "num_game_objects": 2,
+  "instanced_game_objects": 1,
   "game_objects": [
     {
       "obj_file_path": "Models/wuhu.obj",

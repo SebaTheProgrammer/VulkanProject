@@ -101,31 +101,32 @@ void AppBase::Run()
         float aspect = m_Renderer.GetAspectRatio();
         camera.SetPerspectiveProjection(glm::radians( 45.f ), aspect, 0.1f, 10000.f );
 
-		if ( auto commandBuffer = m_Renderer.BeginFrame() ) 
-		{
+        if ( auto commandBuffer = m_Renderer.BeginFrame() )
+        {
             int frameIndex = m_Renderer.GetFrameIndex();
-            FrameInfo frameInfo{ 
-                frameIndex,  frameTime, 
-                commandBuffer, camera, globalDescriptorSets[frameIndex]};
+            FrameInfo frameInfo{
+                frameIndex,  frameTime,
+                commandBuffer, camera, globalDescriptorSets[ frameIndex ] };
 
             //update
-            GlobalUbo ubo{};
+            GlobalUbo ubo;
             ubo.projection = camera.GetProjectionMatrix();
             ubo.view = camera.GetViewMatrix();
             pointLightSystem.Update( frameInfo, ubo );
 
-            globalUboBuffer.writeToIndex( 
+            globalUboBuffer.writeToIndex(
                 &ubo, frameIndex );
             globalUboBuffer.flushIndex( frameIndex );
 
-            //render
-			m_Renderer.BeginSwapChainRenderPass( commandBuffer );
-			simpleRenderSystem.RenderGameObjects( frameInfo, m_GameObjects );
-			pointLightSystem.Render( frameInfo );
 
-			m_Renderer.EndSwapChainRenderPass( commandBuffer );
-			m_Renderer.EndFrame();
-		}
+            //render
+            m_Renderer.BeginSwapChainRenderPass( commandBuffer );
+            simpleRenderSystem.RenderGameObjects( frameInfo, m_GameObjects );
+            pointLightSystem.Render( frameInfo );
+
+            m_Renderer.EndSwapChainRenderPass( commandBuffer );
+            m_Renderer.EndFrame();
+        }
     }
 
 	vkDeviceWaitIdle( m_EngineDevice.Device() );
@@ -133,13 +134,13 @@ void AppBase::Run()
 
 void AppBase::LoadGameObjects()
 {
-    SceneLoader sceneLoader{};
-    auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene1.json");
-    m_GameObjects = std::move( gameObjects );
+    //SceneLoader sceneLoader{};
+    //auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene1.json");
+    //m_GameObjects = std::move( gameObjects );
 
-  /*  SceneLoader sceneLoader{};
-	auto gameObjects = sceneLoader.LoadInstancedGameObjects( m_EngineDevice, "Models/Scene2.json",true, 1000 );
-	m_GameObjects = std::move( gameObjects );*/
+    SceneLoader sceneLoader{};
+	auto gameObjects = sceneLoader.LoadGameObjects( m_EngineDevice, "Models/Scene2.json" );
+	m_GameObjects = std::move( gameObjects );
 
     //std::shared_ptr<Model> arena =
     //    Model::CreateModelFromFile(

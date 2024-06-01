@@ -1,5 +1,6 @@
 {
   "num_game_objects": 1,
+  "instanced_game_objects": 2000,
   "game_objects": [
     {
       "obj_file_path": "Models/Cube.obj",
