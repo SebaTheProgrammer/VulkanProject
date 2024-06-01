@@ -72,6 +72,10 @@ class EngineDevice
       VkMemoryPropertyFlags properties,
       VkImage &image,
       VkDeviceMemory &imageMemory);
+  void CreateTextureImage();
+  void CreateImage( uint32_t width, uint32_t height, VkFormat format,
+      VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
+      VkImage& image, VkDeviceMemory& imageMemory );
 
   VkPhysicalDeviceProperties properties;
 
@@ -106,4 +110,8 @@ class EngineDevice
 
   const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
   const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+  std::vector<VkImage> m_TextureImages;
+  std::vector<VkImageView> m_TextureImageViews;
+  std::vector<VkDeviceMemory> m_TextureImagesMemory;
 };

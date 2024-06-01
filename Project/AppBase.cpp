@@ -19,15 +19,6 @@
 #include <numeric>
 #include "SceneLoader.h"
 
-struct GlobalUbo
-{
-    glm::mat4 projection{ 1.f };
-    glm::mat4 view{ 1.f };
-    glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.2f };
-	glm::vec3 lightPosition{ 1.f, -200.f, -1.f };
-    alignas(16) glm::vec4 lightColor{ 1.f,1.f, 0.7f, 20000.f };
-};
-
 AppBase::AppBase() :
     WIDTH{ 800 }, HEIGHT{ 600 }, m_Window{ WIDTH, HEIGHT,
     std::string{"Vryens Sebastiaan Vulkan"} } 
@@ -93,7 +84,6 @@ void AppBase::Run()
     while ( !m_Window.ShouldClose() )
     {
         glfwPollEvents();
-
         m_Window.UpdateFPS();
 
         auto newTime = std::chrono::high_resolution_clock::now();
@@ -107,15 +97,6 @@ void AppBase::Run()
 
         camera.SetViewYXZ( viewer.m_Transform.translation, viewer.m_Transform.rotation);
         movementController.UpdatePhysics( m_Window.GetGLFWwindow(), frameTime, viewer );
-
-        //glm::vec3 cameraTranslation = viewer.m_Transform.translation;
-        //cameraTranslation.y += 0.10f;
-        //cameraTranslation.x += 0.1f;
-        //cameraTranslation.z += 0.2f;
-        //m_GameObjects[2].m_Transform.translation = cameraTranslation;
-        //glm::vec3 cameraRotation = viewer.m_Transform.rotation;
-        //cameraRotation.y -= glm::pi<float>()/2;
-        //m_GameObjects[ 2 ].m_Transform.rotation = cameraRotation;
 
         float aspect = m_Renderer.GetAspectRatio();
         camera.SetPerspectiveProjection(glm::radians( 45.f ), aspect, 0.1f, 10000.f );
@@ -131,6 +112,7 @@ void AppBase::Run()
             GlobalUbo ubo{};
             ubo.projection = camera.GetProjectionMatrix();
             ubo.view = camera.GetViewMatrix();
+            pointLightSystem.Update( frameInfo, ubo );
 
             globalUboBuffer.writeToIndex( 
                 &ubo, frameIndex );

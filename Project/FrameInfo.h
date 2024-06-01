@@ -82,3 +82,12 @@ struct TransformComponent
     }
 };
 
+struct GlobalUbo
+{
+    glm::mat4 projection{ 1.f };
+    glm::mat4 view{ 1.f };
+    glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.2f };
+    glm::vec3 lightPosition{ 1.f, -150.f, -1.f };
+    alignas( 16 ) glm::vec4 lightColor{ 1.f, 1.f, 0.7f, 20000.f };
+};
+

@@ -79,3 +79,23 @@ void PointLightSystem::Render( FrameInfo& frameinfo)
 
 	vkCmdDraw( frameinfo.commandBuffer, 6, 1, 0, 0 );
 }
+
+void PointLightSystem::Update( FrameInfo& frameinfo, GlobalUbo& ubo )
+{
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> elapsedTime = currentTime - lastTime;
+	frameinfo.deltaTime = elapsedTime.count();
+	lastTime = currentTime;
+
+	timeAccumulator += frameinfo.deltaTime;
+
+	if ( timeAccumulator > glm::two_pi<float>() ) {
+		timeAccumulator -= glm::two_pi<float>();
+	}
+
+	float initialAngle = glm::atan( -1.f, -1.f );
+	float angle = initialAngle + timeAccumulator * m_Speed;
+
+	ubo.lightPosition.x = m_Radius * glm::cos( angle );
+	ubo.lightPosition.z = m_Radius * glm::sin( angle );
+}

@@ -23,6 +23,7 @@ Buffer::Buffer(
     m_MemoryPropertyFlags{ memoryPropertyFlags } {
     m_AlignmentSize = getAlignment( instanceSize, minOffsetAlignment );
     m_BufferSize = m_AlignmentSize * instanceCount;
+
     device.CreateBuffer( m_BufferSize, usageFlags, memoryPropertyFlags, m_Buffer, m_Memory );
 }
 

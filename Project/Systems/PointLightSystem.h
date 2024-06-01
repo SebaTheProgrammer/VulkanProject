@@ -21,6 +21,7 @@ public:
     PointLightSystem( PointLightSystem&& ) = delete;
 
     void Render( FrameInfo& frameinfo );
+    void Update( FrameInfo& frameinfo, GlobalUbo& ubo );
 
 private:
     void CreatePipelineLayout( VkDescriptorSetLayout globalSetLayout );
@@ -30,4 +31,10 @@ private:
 
     std::unique_ptr<Pipeline> m_Pipeline;
     VkPipelineLayout m_PipelineLayout;
+
+    float timeAccumulator{};
+    std::chrono::high_resolution_clock::time_point lastTime;
+
+    float m_Radius = 200.0f;
+    float m_Speed = 0.0001f;
 };
